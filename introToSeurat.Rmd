@@ -1,0 +1,2167 @@
+---
+title: "Introduction to R and Seurat"
+output: html_notebook
+---
+
+The goal of this notebook is to go over a very high level introduction to coding with R and then provide an overview of an analysis pipeline for scRNA-seq data. The data will be imported, utilize Seurat to process data, and then run downstream analysis of pathway analysis, cell-cell communication, and pseudotime.
+This is intended to be used with multiple datasets at once, but can be run with a single dataset if desired
+
+Please send questions to cjhatch@uci.edu
+
+### Part 1: Introduction to R
+R is a programming language for statistical computing and graphics that has gained widespread popularity in the bioinformatics community due to it being a high level language with multiple specific packages and great visualization techniques. One nice thing about R is that it is functional programming language which does not require pre determination of variables (https://medium.com/@shaistha24/functional-programming-vs-object-oriented-programming-oop-which-is-better-82172e53a526)
+
+The next few chunks of code (which are denoted by three ` followed by the type of langague you want to use) will walk through some core concepts of coding, as well as discussing the data frame structure, which is used throughout many processes in R
+
+Welcome to the R learning chunks!
+
+
+## Step 1: Syntax and comments
+Anything that is written outside of code chunk does not get run. The space outside of chunks is a great area to put notes or breifly describe the proceeding code. 
+```{r}
+# This is a comment. Commenting codes is very important to make sure that others can reproduce
+# your work. You have to manually create multiple line comments by either using the
+# pound sign. Or you can highlight multiple lines of text and use ctrl shift
+
+
+# creating clear comments is still something I am working on, but for some basic advice with comments you can refer to this stack overflow post. Starting out I would recommend over commenting your code as it can help you understand the basics, but there is no need to be redunant in your comments either 
+# https://stackoverflow.blog/2021/12/23/best-practices-for-writing-code-comments/
+```
+
+
+## Step 2: Assigning Variables
+In R, both `<-` and `=` can be used for variable assignment, but they have slightly different #behaviors and conventions. Here are the key differences between the two:
+
+1. Assignment Operator: The primary difference lies in their roles as assignment operators. 
+
+- `<-` is the preferred assignment operator in R. It assigns values to variables in the global environment or within a function.
+- `=` is also used for assignment, but it has an additional purpose as an argument separator in function calls.
+
+2. Convention: The convention in R is to use `<-` for assignment. It is widely used and #recommended in coding style guides and documentation, making it more prevalent in R code.
+
+3. Readability: The choice of assignment operator can affect code readability.
+
+- `<-` can sometimes be easier to visually parse, especially in complex expressions or when reading code written by others. It resembles an arrow pointing from the right-hand side (value) to the left-hand side (variable).
+- `=` may be more familiar to users coming from other programming languages or mathematical notation where `=` is commonly used for assignment.
+
+4. Compatibility: While `<-` and `=` are interchangeable for most purposes, there are a few cases where using `=` for assignment can cause unexpected behavior or errors.
+
+- When defining function arguments, it is recommended to use `=` for specifying default values. For example: `myfunc(x, y = 10)`.
+- In formula notation, `=` is typically used to specify the relationship between dependent and independent variables. For example: `lm(y ~ x, data = mydata)`.
+
+It's worth noting that within certain R packages or programming environments, such as RStudio, both `<-` and `=` can be used interchangeably for assignment. However, for consistency and to adhere to R's convention, it is generally recommended to use `<-` for variable assignment in your R code.
+
+Example:
+```{r}
+x <- 5  # Using <- for assignment
+y = 10  # Using = for assignment
+
+x  # Output: 5
+y  # Output: 10
+```
+
+In summary, `<-` is the preferred assignment operator in R due to convention, readability, and compatibility with other R code. While `=` can also be used, it is more commonly used as an argument separator in function calls.
+
+## Step 3: Understanding classes
+Certainly! In R, there are several different types of classes that variables can have. Here are some commonly used classes and how to check the class of a variable:
+
+1. Numeric: This class represents numeric values, both integers and decimal numbers. To check the class, you can use the `class()` function.
+
+```{r}
+x <- 5
+class(x)  # Output: "numeric"
+```
+
+2. Character: This class represents textual data. To check the class, again, you can use the `class()` function.
+
+```{r}
+x <- "Hello"
+class(x)  # Output: "character"
+```
+
+3. Integer: This class represents integer values. To explicitly set a variable as an integer, you can use the `as.integer()` function. To check the class, you can use the `class()` function.
+
+```{r}
+x <- as.integer(10)
+class(x)  # Output: "integer"
+```
+
+4. Logical: This class represents boolean values (`TRUE` or `FALSE`). To check the class, you can use the `class()` function.
+
+```{r}
+x <- TRUE
+class(x)  # Output: "logical"
+```
+
+5. Date: This class represents dates. To check the class, you can use the `class()` function.
+
+```{r}
+x <- as.Date("2022-01-01")
+class(x)  # Output: "Date"
+```
+
+6. Factor: This class represents categorical or nominal data with predefined levels. To check the class, you can use the `class()` function.
+
+```{r}
+x <- factor(c("Red", "Green", "Blue"))
+class(x)  # Output: "factor"
+```
+
+7. Data frame: This class represents a tabular data structure with rows and columns. To check the class, you can use the `class()` function.
+
+```{r}
+x <- data.frame(Name = c("John", "Alice"), Age = c(25, 30))
+class(x)  # Output: "data.frame"
+```
+
+These are just a few examples of the common classes in R. There are additional classes and specialized classes available for specific purposes. To check the class of a variable, simply use the `class()` function followed by the variable name.
+
+```{r}
+x <- 5
+class(x)  # Output: "numeric"
+```
+
+8. Creating variables with multiple elements
+There are two main ways to create variables wiht multiple elements, those are either creating lists within a single variable or creating a list of variables
+```{r}
+# Creating variables with multiple elements using c()
+numbers <- c(1, 2, 3, 4, 5)  # Creating a numeric vector
+fruits <- c("Apple", "Banana", "Orange")  # Creating a character vector
+
+# Selecting specific elements using indexing []
+selected_number <- numbers[3]  # Selecting the third element of numbers
+selected_fruit <- fruits[c(1, 3)]  # Selecting the first and third elements of fruits
+selected_fruit_non_first <- fruits[-1] # adding a minus sign before values allows for you to remove them from the list
+
+print("Selected number:")
+print(selected_number)  # Output: 3
+
+print("Selected fruits:")
+print(selected_fruit)  # Output: "Apple" "Orange"
+
+print("Selected fruits non first:")
+print(selected_fruit_non_first)
+```
+
+the second way to store numerous elements together is in a list. A list allows you to store multiple variables in a single variable, which can be useful when working with multiple data frames that you want to maniuplate in a similar manner
+```{r}
+df1 <- data.frame(Name = c("John", "Alice"), Age = c(25, 30))
+df2 <- data.frame(Name = c("Tood", "Denise"), Age = c(10, 50))
+dfList <- list(df1, df2)
+
+# to subset variables inside a list you use double brackets 
+print(dfList[[1]])
+# to isolate individual elements inside a variable you add single brackets after the double brackets. Because this is a dataframe we need to select both a row and column to subset in the [row, column] format
+print(dfList[[1]][1,])
+```
+
+Knowing the class of a variable is useful for understanding its type, which can influence how you manipulate and analyze the data.
+
+## Step 4: Basic Arithmetic Operations
+R can perform arithmetic operations. Let's do some calculations:
+```{r}
+# Basic arithmetic operations
+
+# Addition
+result_addition <- 5 + 3
+print("Addition:")
+print(result_addition)  # Output: 8
+
+# Subtraction
+result_subtraction <- 10 - 4
+print("Subtraction:")
+print(result_subtraction)  # Output: 6
+
+# Multiplication
+result_multiplication <- 2 * 6
+print("Multiplication:")
+print(result_multiplication)  # Output: 12
+
+# Division
+result_division <- 15 / 3
+print("Division:")
+print(result_division)  # Output: 5
+
+# Remainder (Modulo)
+result_remainder <- 17 %% 5
+print("Remainder:")
+print(result_remainder)  # Output: 2
+```
+
+## Step 4: For Loops
+For loops are an essential tool in coding as they allow for the repetition of a set of instructions based on a specific condition. They are useful for automating tasks, iterating over data structures, and performing operations on multiple elements. In R, for loops are particularly valuable when working with data frames, lists, or vectors, enabling efficient processing of data, computation, and generation of results. They provide a flexible and powerful mechanism for performing repetitive operations, transforming data, and implementing algorithms in R programming.
+
+
+In the context of a for loop, the variable `i` is commonly used as the loop counter or iterator. However, it's important to note that `i` is just a convention, and you can choose any valid variable name for the loop counter.
+
+Here's an example of a for loop in R that iterates over a sequence of numbers using `i` as the loop counter:
+```{r}
+# Example for loop
+for (i in 1:5) {
+  print(paste("Iteration:", i))
+}
+```
+
+In this code, the for loop is set to iterate over the sequence `1:5`. During each iteration, the value of `i` changes according to the elements of the sequence. Here's what happens in each iteration:
+
+- In the first iteration, `i` takes the value of 1.
+- In the second iteration, `i` takes the value of 2.
+- This process continues until the loop reaches the final value in the sequence.
+
+Inside the loop, you can perform various operations or execute a block of code using the current value of `i`. In this example, we print the iteration number using `print(paste("Iteration:", i))` to demonstrate what happens at each iteration.
+
+The loop will execute the code block for each value of `i`, providing a way to repeat a set of instructions a specified number of times or iterate over a sequence of elements.
+
+It's worth noting that `i` is not limited to integers. You can use any valid sequence or vector, such as character strings or dates. The loop variable `i` will take each value from the sequence or vector in each iteration.
+
+Remember to modify the loop body or code block according to your specific needs. The loop counter (`i`) allows you to reference and work with the current iteration's value within the loop.
+
+A common use of the the for loop is to iterate through a list of data frames and perform a repeated process. Try to create a for loop that repeats for the number of elements in dfList. You can use the length() function to determine the number of elements. For each variable in the list, print the second row of the data frame
+```{r}
+
+```
+
+## Step 5: If Statements
+If statements are fundamental control structures in programming that allow you to make decisions based on certain conditions. They are particularly useful in R for controlling the flow of code execution based on logical conditions. With if statements, you can specify different sets of instructions to be executed depending on whether a condition is true or false. This enables you to create dynamic and flexible code that can handle different scenarios, perform conditional operations, filter data, and execute specific tasks based on specific conditions. If statements are essential for implementing conditional logic and branching in R, enhancing the functionality and versatility of your code.
+
+If statements are used to execute code based on a condition. Example:
+```{r}
+x <- 5
+y <- 10
+if (x > y) {
+  print("x is greater than y")
+} else {
+  print("x is not greater than y")
+}
+```
+
+In addition to if statements, the concept of "if else if" allows for more complex decision-making in coding. It enables you to test multiple conditions sequentially and execute different blocks of code based on the outcome of those conditions.
+
+The basic syntax of "if else if" in R is as follows:
+
+if (condition1) {
+  # Code to be executed if condition1 is true
+} else if (condition2) {
+  # Code to be executed if condition2 is true
+} else {
+  # Code to be executed if none of the above conditions are true
+}
+
+
+Here's how it works:
+
+1. The initial `if` statement checks the first condition (`condition1`). If the condition is true, the corresponding code block is executed, and the remaining `else if` and `else` clauses are skipped.
+
+2. If `condition1` is false, the program moves to the next `else if` statement and checks the condition (`condition2`). If this condition is true, the code block associated with that condition is executed, and any subsequent `else if` and `else` clauses are skipped.
+
+3. If none of the preceding conditions are true, the code block within the final `else` clause is executed. This block serves as a fallback when all previous conditions evaluate to false.
+
+Using "if else if" statements allows you to handle multiple decision paths based on different conditions. It provides a way to create more nuanced logic in your code and control the flow of execution based on various scenarios.
+
+Here's an example to illustrate the usage of "if else if" in R:
+
+
+```{r}
+x <- 10
+
+if (x > 0) {
+  print("x is positive")
+} else if (x < 0) {
+  print("x is negative")
+} else {
+  print("x is zero")
+}
+```
+
+
+In this example, the program checks the value of `x` and executes the corresponding code block based on its value. If `x` is greater than 0, the message "x is positive" is printed. If `x` is less than 0, the message "x is negative" is printed. Otherwise, if none of the above conditions hold true, the message "x is zero" is printed.
+
+By using "if else if" statements, you can handle multiple conditions and perform different actions based on the outcome of those conditions, allowing for more nuanced decision-making in your R code.
+
+
+## Step 6: While Loops
+The `while` statement is another control structure in programming that allows you to execute a block of code repeatedly as long as a certain condition remains true. It is particularly useful in scenarios where you want to repeat a set of instructions until a specific condition is no longer met. In R, the `while` loop is a powerful construct for iterative operations and provides flexibility in handling dynamic conditions.
+
+Here's the basic syntax of a `while` loop in R:
+
+while (condition) {
+  # Code to be executed while the condition is true
+}
+
+
+The `condition` is a logical expression that is evaluated before each iteration of the loop. If the condition is true, the code block inside the `while` loop is executed. Once the code block is executed, the condition is checked again. If it is still true, the loop continues to iterate. If the condition becomes false, the loop terminates, and the program execution continues with the next statement after the loop.
+
+Here's an example to illustrate the usage of a `while` loop in R:
+
+
+```{r}
+x <- 5
+
+while (x > 0) {
+  print(x)
+  x <- x - 1
+}
+```
+
+
+In this example, the `while` loop is used to count down from `5` to `1`. The condition `x > 0` is evaluated before each iteration. As long as `x` is greater than `0`, the code block within the loop is executed. In each iteration, the current value of `x` is printed, and then `x` is decremented by `1`. The loop continues until `x` becomes `0`, at which point the condition is no longer true, and the loop terminates.
+
+Compared to a `for` loop, the `while` loop is typically used when you don't know in advance how many times the loop should iterate. It allows you to repeat a set of instructions until a specific condition is no longer met, making it suitable for scenarios with dynamic or changing conditions. In contrast, a `for` loop is usually used when you have a fixed number of iterations based on a known sequence or range.
+
+It's important to be cautious when using a `while` loop to ensure that the condition eventually becomes false. Otherwise, you may end up with an infinite loop that keeps executing indefinitely.
+
+Overall, the `while` loop provides a powerful mechanism in R for repetitive operations and iterative tasks, allowing you to handle dynamic conditions and perform actions as long as the condition remains true.
+
+## Step 7: Handling error messages
+
+Error messages and warnings in R provide important feedback about potential issues or problems encountered during code execution. Understanding these messages can help you identify and resolve errors in your code. Here's some information about error messages and warnings in R:
+
+Error Messages:
+- Error messages indicate that an error has occurred during the execution of the code, preventing it from completing successfully. These errors can be due to syntax errors, logical errors, missing functions, incorrect inputs, or other issues.
+- When an error occurs, R displays an error message along with a traceback, which shows the sequence of function calls that led to the error.
+- Here's an example code snippet that produces an error message:
+
+```{r}
+# Attempting to divide by zero
+result <- 10 / 0
+```
+
+In this example, dividing by zero will trigger an error because it is mathematically undefined. When you run this code, you'll receive an error message like "Error in result <- 10/0: non-numeric argument to binary operator". The error message provides information about the cause of the error, allowing you to identify and fix the issue.
+
+Warnings:
+- Warnings, on the other hand, signify potential issues or unusual behavior during code execution. Unlike errors, warnings do not halt the execution of the code, but they highlight situations that might lead to unexpected results.
+- Warnings can occur due to various reasons, such as deprecated functions, type conversions, or non-fatal errors.
+- Here's an example code snippet that generates a warning:
+
+```{r}
+# Attempting to convert a character to numeric
+x <- "123a"
+result <- as.numeric(x)
+```
+
+
+In this example, the variable `x` is a character string that cannot be directly converted to numeric. When you run this code, you'll receive a warning message like "Warning message: NAs introduced by coercion". The warning message alerts you that the conversion resulted in missing values (NAs), indicating potential issues with the conversion.
+
+Distinguishing Errors and Warnings:
+- Errors are more severe and indicate that the code cannot proceed further until the issue is resolved. They generally require immediate attention to fix the underlying problem.
+- Warnings, on the other hand, provide cautionary information about potential issues but allow the code to continue running. It's essential to pay attention to warnings as they might affect the correctness or integrity of your results, even though they don't halt the execution.
+
+By understanding error messages and warnings, you can effectively diagnose and troubleshoot issues in your R code, making your coding experience more productive and efficient.
+
+It is inevtabile that you will run into error and warning messages in coding. The best way to learn how to handle them is to use the internet. To search for solutions using a web browser you can follow these steps:
+
+1. Identify the error message: When encountering an error in R, note the specific error message or any relevant error codes.
+
+2. Copy the error message: Select the error message text in R or right-click to copy the error message.
+
+3. Open a web browser: Launch your preferred web browser (e.g., Chrome, Firefox, Safari).
+
+4. Open a search engine: Go to your favorite search engine's website (e.g., Google, Bing).
+
+5. Paste the error message: In the search engine's search bar, right-click and paste the copied error message.
+
+6. Add relevant keywords: If the error message alone doesn't yield satisfactory results, consider adding relevant keywords related to your code or the specific problem you're facing. For example, if the error involves reading a file, you might include keywords like "R read file error."
+
+7. Hit Enter/Search: Press Enter or click the search button to initiate the search.
+
+8. Browse search results: Review the search results to find relevant solutions, discussions, or tutorials from sources like Stack Overflow, GitHub, R-specific forums, official documentation, or personal blogs.
+
+9. Analyze and apply solutions: Read through the search results and evaluate different solutions or approaches suggested by the community. Pay attention to answers or discussions with a high number of upvotes or positive feedback.
+
+10. Implement the solution: Once you find a potential solution or a workaround, apply it to your code in the R environment. Modify your code accordingly and test it to see if the issue is resolved.
+
+By performing a web search using a browser, you can leverage the power of popular search engines and access a wider range of resources and discussions beyond what is available in the R environment alone. This approach allows you to explore various platforms and communities dedicated to R programming, where you can find helpful insights, alternative strategies, and resolutions for the encountered error messages.
+
+## Step 8: Try catch
+
+Certainly! The `tryCatch()` function in R provides a way to handle and manage errors and exceptions in your code. It allows you to wrap a block of code within a try-catch construct, enabling you to gracefully handle errors and execute alternative code paths when an error occurs. Here's some information about try-catch functions and their usefulness in R:
+
+Purpose of tryCatch():
+- The primary purpose of using `tryCatch()` is to prevent your code from abruptly terminating when an error occurs. Instead of stopping the code execution, you can catch the error, handle it appropriately, and continue with the remaining code.
+- With try-catch, you can anticipate and manage potential errors, making your code more robust, resilient, and user-friendly.
+
+Basic Syntax of tryCatch():
+The basic syntax of the `tryCatch()` function is as follows:
+
+tryCatch({
+  # Code block to be executed
+}, error = function(err) {
+  # Code block to handle the error
+}, warning = function(wrn) {
+  # Code block to handle the warning
+}, finally = {
+  # Code block to execute regardless of errors or warnings
+})
+
+Key Components of tryCatch():
+- The code block within the `tryCatch()` function is where you place the code that may generate an error.
+- The `error` argument specifies the code block that executes when an error occurs. It allows you to handle the error condition appropriately.
+- The `warning` argument specifies the code block that executes when a warning is issued. It allows you to handle warnings in a controlled manner.
+- The `finally` argument specifies the code block that executes regardless of whether an error or warning occurred. It provides a place to include any cleanup or finalization steps.
+
+Example of tryCatch():
+Here's an example to illustrate the usage of `tryCatch()` in R:
+
+```{r}
+# Attempting to divide by zero
+result <- tryCatch({
+  numerator <- 10
+  denominator <- 0
+  numerator / denominator
+}, error = function(err) {
+  print("An error occurred!")
+  print(paste("Error message:", conditionMessage(err)))
+  return(NA)
+}, warning = function(wrn) {
+  print("A warning occurred!")
+  print(paste("Warning message:", conditionMessage(wrn)))
+}, finally = {
+  print("Execution completed.")
+})
+```
+
+In this example, we attempt to divide a numerator by zero, which would normally cause an error. However, using `tryCatch()`, we catch the error and execute the corresponding error block. Instead of the code abruptly terminating, we print an error message and return `NA` as a result. The warning block handles any warnings that may occur, and the finally block executes regardless of whether an error or warning occurred.
+
+Common Pitfalls:
+- One common pitfall is not providing proper error handling within the `tryCatch()` construct. Failing to handle errors effectively can result in unexpected behavior or incomplete error management.
+- It's important to avoid using `tryCatch()` as a general mechanism to suppress or hide errors. Instead, focus on handling errors appropriately and providing meaningful feedback or alternative actions when errors occur.
+- Be mindful of the code within the error or warning block. It should be robust and handle potential issues gracefully. Avoid introducing new errors or generating an infinite loop within these blocks.
+
+By utilizing `tryCatch()` effectively, you can gracefully handle errors and warnings, ensuring your code continues execution and providing a more user-friendly experience. However, it's crucial to design error handling with care, addressing potential pitfalls and creating reliable and robust code.
+
+## Step 9: Searching within data frames
+
+Data frames are one of the most common types of variables within R. Seurat uses a fancy version of data frames, but it is still based on the similar context. Therefore it is important to understand the structure of data frames and how to search for specific values inside them. An example of this is for when you want to look at the expression of a single gene or want to subset out all of the endothelial cells compared to the other cell types. 
+
+In R, the `$` operator is used to access specific columns within a data frame. It allows you to extract a particular column as a vector from the data frame by specifying the column name directly. The syntax for using the `$` operator is: `dataframe$column_name`.
+
+Example:
+```{r}
+# Create a data frame
+df <- data.frame(name = c("Alice", "Bob", "Charlie"),
+                 age = c(25, 30, 35))
+
+# Access the "name" column using the $ operator
+names <- df$name
+print(names)
+```
+Output:
+
+[1] "Alice"   "Bob"     "Charlie"
+In this example, we create a data frame `df` with two columns, "name" and "age". Using `df$name`, we access the "name" column and assign it to the variable `names`. Printing `names` displays the values of the "name" column.
+
+The `$` operator is a convenient way to access specific columns within a data frame in R, allowing you to work with the desired components efficiently.
+
+
+
+There are numerous ways to find certain elements in R. Some of these include grep(), grepl(),
+which(), and subset()
+
+
+1. `grep()` Function:
+The `grep()` function is used to search for specific patterns or values within a character vector or a factor. It returns the indices of the elements that match the pattern or value. The syntax is: `grep(pattern, x, ...)`.
+
+Example:
+```{r}
+# Search for elements containing "apple" in a character vector
+fruits <- c("apple", "banana", "cherry", "orange")
+indices <- grep("apple", fruits)
+print(indices)
+```
+Output:
+
+[1] 1
+
+In this example, we use `grep("apple", fruits)` to search for the index of the element that contains the pattern "apple" within the `fruits` vector. The function returns the index `1`, indicating that "apple" is found at the first position.
+
+2. `grepl()` Function:
+The `grepl()` function is similar to `grep()`, but it returns a logical vector indicating which elements match the pattern. It returns `TRUE` for matching elements and `FALSE` otherwise. The syntax is: `grepl(pattern, x, ...)`.
+
+Example:
+```{r}
+# Check if elements contain "apple" in a character vector
+fruits <- c("apple", "banana", "cherry", "orange")
+matches <- grepl("apple", fruits)
+print(matches)
+```
+Output:
+
+[1]  TRUE FALSE FALSE FALSE
+
+In this example, `grepl("apple", fruits)` checks whether each element in the `fruits` vector contains the pattern "apple". It returns a logical vector indicating the matches (`TRUE`) and non-matches (`FALSE`).
+
+3. `which()` Function:
+The `which()` function is used to return the indices or positions of elements that satisfy a given condition. It can be used with logical expressions or functions that return logical values. The syntax is: `which(condition, arr.ind = FALSE)`.
+
+Example:
+```{r}
+# Find the indices of even numbers in a numeric vector
+numbers <- c(1, 2, 3, 4, 5, 6)
+even_indices <- which(numbers %% 2 == 0)
+print(even_indices)
+```
+Output:
+
+[1] 2 4 6
+
+In this example, we use `which(numbers %% 2 == 0)` to find the indices of elements in the `numbers` vector that are even. The function returns the indices `2`, `4`, and `6`, corresponding to the positions of even numbers.
+
+4. `subset()` Function:
+The `subset()` function is used to extract subsets of a data frame based on specific conditions. It allows you to specify conditions using logical expressions and return a subset of the data frame that meets those conditions. The syntax is: `subset(x, subset, select, ...)`
+
+Example:
+```{r}
+# Subset a data frame based on a condition
+df <- data.frame(name = c("Alice", "Bob", "Charlie"),
+                 age = c(25, 30, 35))
+subset_df <- subset(df, age > 30)
+print(subset_df)
+```
+Output:
+
+    name age
+3 Charlie  35
+
+In this example, we use `subset(df, age > 30)` to extract a subset of the `df` data frame where the age is greater than 30. The resulting subset `subset_df` contains only the row(s) that satisfy the condition.
+
+If we want to compare these we can use the following code
+
+These functions (`grep()`, `grepl()`, `which()`,
+```{r, message = FALSE}
+# Create a sample dataframe
+df <- data.frame(
+  Name = c("John", "Alice", "Bob", "Eve"),
+  Age = c(25, 30, 35, 40),
+  Country = c("USA", "Canada", "USA", "Australia")
+)
+
+# 1. Using grep for partial string matching
+matched_rows <- grep("Jo", df$Name, value = FALSE)
+matched_df_grep <- df[matched_rows, ]
+print("Using grep:")
+print(matched_df_grep)
+
+# 2. Using grepl for logical matching
+matched_rows_logical <- grepl("USA", df$Country)
+matched_df_grepl <- df[matched_rows_logical, ]
+print("Using grepl:")
+print(matched_df_grepl)
+
+# 3. Using which for indexing
+matched_rows_index <- which(df$Age > 30)
+matched_df_which <- df[matched_rows_index, ]
+print("Using which:")
+print(matched_df_which)
+
+# 4. Using subset for conditional subsetting
+matched_df_subset <- subset(df, Country == "USA")
+print("Using subset:")
+print(matched_df_subset)
+```
+
+## Step 10: Using resources to look for certain functionality
+It is important to understand the basics of coding and over time you will memorize certain functions and chunks of code that you use regularly. However, most of the time you will be dependent on looking up how code works. This requires using google or reaching out to other individuals. 
+
+I. Below is an example of how to use google
+
+Here are some steps to help you search online and find information on how to accomplish a specific task in R:
+
+1. Identify the task: Clearly define the task or problem you want to solve in R. Be specific about what you want to achieve.
+
+2. Formulate a search query: Start by formulating a search query using keywords related to the task. Include relevant terms such as "R," "code," and "tutorial" to narrow down the results to R-specific solutions.
+
+3. Use a search engine: Open a web browser and go to a search engine like Google or Bing.
+
+4. Enter the search query: Type your search query into the search engine's search bar. Be specific and concise.
+
+5. Consider additional keywords: If your initial search query doesn't yield satisfactory results, consider adding additional keywords related to the specific task, relevant functions, data types, or specific packages you are working with.
+
+6. Evaluate search results: Review the search results and pay attention to titles, descriptions, and snippets to assess their relevance to your task. Focus on results from trusted sources such as official documentation, reputable websites, online forums, or tutorial platforms.
+
+7. Refine search if necessary: If you don't find what you're looking for in the initial search results, consider refining your search query by modifying or adding more specific keywords. Experiment with different combinations of terms to get better results.
+
+8. Explore different resources: Look beyond the first few search results. Explore multiple resources like official documentation, Stack Overflow, R-related forums, GitHub repositories, blog posts, and video tutorials to gather different perspectives and solutions.
+
+9. Read through tutorials and examples: When you come across tutorials or examples related to your task, take the time to read them thoroughly. Understand the code and the underlying concepts to grasp how it applies to your specific situation.
+
+10. Apply the learned solution: Once you find a suitable solution or approach, apply it to your R code. Modify your code accordingly and test it to see if it accomplishes the desired task.
+
+Remember, online searching can be iterative. If your initial search doesn't yield satisfactory results, iterate by refining your search query, exploring different resources, and adjusting your keywords to find more relevant information. Persistence and an exploratory mindset are key when searching online to find how to accomplish a task in R.
+
+II. Another resource that I would tenatively recommend is ChatGPT; however, keep in mind that a lot of times the code won't always work if you are asking for detailed or specific code. Most of this tutorial was generated using ChatGPT, so it does a good job, just keep in mind that it might require further validation. I would not recommend on using it for more complex operations, but it can be a great starting place
+
+To use ChatGPT to understand how to accomplish certain tasks in R, you can follow these steps:
+
+1. Clearly define the task: Determine the specific task or problem you want to solve in R. Be as specific as possible, including the desired outcome or objective.
+
+2. Ask for guidance: Ask ChatGPT a question related to the task you want to accomplish. For example, "How can I read a CSV file in R?" or "What is the syntax to create a scatter plot in R?" Be clear and concise in your question to receive a relevant response.
+
+3. Evaluate the response: ChatGPT will provide a response to your question based on its knowledge and training. Read the response carefully and check if it addresses your specific task. ChatGPT can provide general guidance, code examples, or explanations to help you accomplish your goal.
+
+4. Experiment and practice: Take the information provided by ChatGPT and apply it in your R environment. Test the code examples, follow the instructions, and see if you achieve the desired outcome. Practice is crucial for understanding and improving your R skills.
+
+5. Iterate and ask follow-up questions: If you encounter any difficulties or have further questions, don't hesitate to ask follow-up questions to clarify or seek additional information. ChatGPT can provide further assistance and explanations to help you overcome challenges.
+
+6. Validate with external resources: While ChatGPT can provide valuable guidance, it's always a good practice to cross-validate the information with reputable external resources like official R documentation, online tutorials, or forums. This helps ensure accuracy and reliability.
+
+Remember that ChatGPT is a language model trained on a wide range of data, including R-related information. However, it's always important to exercise critical thinking and validate the information provided.
+
+III. Built in R descriptions
+In the event that you know the name of a function you want to use, but not how to use it, you can ask R to output the documentation by puttign a question mark in front of the function and not using the () at the end of it
+```{r}
+?length
+```
+
+However, I usually just google it and look for the exact documentation as the help window can be small and hard to read
+
+## Step 11: List of additional resources
+Warning: These were generated using ChatGPT. I have only used swirl, so I have no idea of the quality of the other resources
+Certainly! Here are some resources that can help someone who is just learning R:
+
+1. RStudio: RStudio is an integrated development environment (IDE) specifically designed for R. It provides a user-friendly interface, powerful tools, and excellent documentation. You can download RStudio for free and explore their official website for learning resources, tutorials, and the RStudio community.
+
+2. R for Data Science: "R for Data Science" by Hadley Wickham and Garrett Grolemund is a highly recommended book for learning R. It covers the fundamentals of R programming and its applications in data analysis and visualization. The book is available online for free at r4ds.had.co.nz.
+
+3. Swirl: Swirl is an interactive R programming learning platform. It offers interactive lessons directly within the R environment, allowing you to learn and practice R concepts simultaneously. You can install the Swirl package in R and explore various interactive courses on data analysis, statistics, and more.
+
+4. Coursera: Coursera offers a range of online courses on R programming, data analysis, and statistics. Some popular courses include "R Programming" by Johns Hopkins University and "Data Science and Machine Learning Bootcamp with R" by Udemy. These courses provide structured learning paths, video lectures, assignments, and quizzes to enhance your R skills.
+
+5. R-bloggers: R-bloggers is a popular online community and blog aggregator for R-related content. It features a vast collection of articles, tutorials, tips, and examples contributed by R users and experts worldwide. Exploring R-bloggers can expose you to diverse R topics and practical use cases.
+
+6. Stack Overflow: Stack Overflow is a question-and-answer website widely used by developers, including R programmers. You can search for R-related questions or post your own queries to get answers from the community. It's a valuable resource for troubleshooting, learning from others' experiences, and finding solutions to common R challenges.
+
+7. RDocumentation: RDocumentation is a comprehensive online resource that provides documentation for R packages. It offers detailed information about package functions, examples, and usage. It's a handy reference when working with specific R packages and exploring their capabilities.
+
+Remember, as you learn R, it's essential to practice coding, engage in hands-on projects, and explore real-world datasets. This practical experience will solidify your understanding and proficiency in R programming.
+
+Congrats on finishing the very high level introduction to R! In the next part we will start to analyze data using Seurat. All of the code should already be generated, so you shouldn't have to change any of the variables
+
+### Part 2: Single-cell analysis with R
+This part focuses on using mostly pre-generated code to work through analysis with R. This will work through analyzing our VMO device that contains endothelial cells, fibroblasts, and pericytes. For an overview of the Hughes Lab vascularized micro-organ refer to https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6995340/. This will be heavily relying on Seurat. They have a fantastic website which includes their own tutorials; however, I think it's more fun to use data that we generated in lab, but feel free to work through any of the tutorials (https://satijalab.org/seurat/ )
+
+## Step 1: Set up the working environemnt
+The working directory in R refers to the default location on your computer's file system where R looks for files and where it saves files by default. When you read or write files in R, the paths provided are relative to the working directory unless an absolute path is specified.
+
+Here are a few key points about the working directory in R:
+
+1. Current Working Directory: The working directory is the directory/folder that R is currently operating in. You can check the current working directory using the `getwd()` function.
+
+2. Setting the Working Directory: You can change the working directory in R using the `setwd()` function. For example, `setwd("/path/to/directory")` sets the working directory to a specific directory identified by the file path.
+
+3. Relative Paths: When you specify file paths relative to the working directory, you don't need to provide the full path starting from the root directory. Instead, you can specify the path relative to the current working directory. For example, if your working directory is set to "/path/to/directory", you can refer to a file named "data.csv" in the same directory as "./data.csv" or simply "data.csv".
+
+4. Absolute Paths: Absolute paths provide the complete path starting from the root directory. They specify the exact location of a file or directory on your computer's file system. For example, "/Users/username/Documents/data.csv" is an absolute path.
+
+5. Default Behavior: When you save files or use certain functions without specifying a path, R assumes the current working directory as the default location. For example, when you use `write.csv()` without specifying the file path, it saves the file in the working directory.
+
+6. RStudio's Interface: In RStudio, the working directory is displayed in the "Files" pane on the right side of the interface. You can navigate through directories, set the working directory, and access files using the file browser.
+
+Understanding and managing the working directory is important when reading or writing files, loading packages, or executing scripts that depend on specific files in R. By correctly setting the working directory and using relative or absolute paths, you can effectively work with files and ensure that R can locate and save files in the desired locations.
+
+When working with a .Rmd file and chunks you need to set the output using the below code
+Copy past ouptput to path
+```{r setup}
+path <- ("~/Documents/InformaticsFolder/Training")
+knitr::opts_knit$set(root.dir = normalizePath(path)) 
+```
+
+## Step 2: Install and load packages
+In R, packages and libraries refer to collections of pre-written functions, data sets, and other resources that extend the functionality of the base R system. Packages are a fundamental aspect of the R ecosystem and play a crucial role in enhancing and expanding the capabilities of the language. Here's a breakdown of packages and libraries in R:
+
+1. Packages: Packages are bundles of code, documentation, and data that are designed to solve specific tasks or address particular domains. They are created and maintained by members of the R community, including developers, statisticians, and researchers. Packages provide a way to share and distribute code, making it easier for users to access and utilize specialized functionality.
+
+2. Installing Packages: To use a package in R, you need to install it first. This can be done using the `install.packages()` function. For example, `install.packages("ggplot2")` installs the "ggplot2" package, which is widely used for data visualization in R.
+
+3. Loading Packages: Once a package is installed, you need to load it into your R session using the `library()` or `require()` function. Loading a package makes its functions, data sets, and other resources available for use. For example, `library(ggplot2)` loads the "ggplot2" package into the current session.
+
+4. Package Dependencies: Packages in R can have dependencies, which are other packages that need to be installed and loaded in order for a particular package to work correctly. When you install a package, R automatically installs its dependencies if they are not already present.
+
+5. CRAN and Other Repositories: The Comprehensive R Archive Network (CRAN) is the primary repository for R packages. It hosts thousands of packages contributed by the R community. In addition to CRAN, there are other repositories like Bioconductor, GitHub, and R-Forge that host specialized packages for specific purposes or domains.
+
+6. Package Functions: Packages typically provide their own functions, which can be accessed using the package name followed by the function name. For example, `ggplot2::ggplot()` accesses the `ggplot()` function from the "ggplot2" package.
+
+7. Documentation and Vignettes: Packages come with documentation that explains the usage and functionality of the functions and datasets provided. Many packages also include vignettes, which are detailed guides or tutorials demonstrating how to use the package effectively.
+
+Using packages in R allows you to leverage the collective knowledge and expertise of the R community, making it easier to perform specific tasks, analyze data, create visualizations, and more. By installing and loading packages relevant to your needs, you can extend the capabilities of R and streamline your workflows.
+
+If you need to install a package there are three ways of accomplishing that which are listed in the order that I would recommend: 
+1) install using CRAN
+2) install using Bioconductor
+3) install directly from github
+installing packages
+```{r}
+# 1) install using CRAN. The name of the package goes in quotations
+install.packages("Seurat")
+
+# 2) to install using Bioconductor you first have to load biocmanager
+install.packages("BiocManager")
+library(BiocManager)
+BiocManager::install("ComplexHeatmap")
+
+# 3) to install from github you first have to load devtools
+# you then search the internet to find the github page that you want. On that page there should be info on the path to use 
+library(devtools)
+install_github("amsszlh/scMC")
+
+```
+
+The following code will produce error messages if you do not have the packages installed. Using the options above, please google the name of the package and install them. These packages will be used in most of the analysis that we do
+Check if packages are installed and load necessary R packages
+```{r, message=FALSE}
+library(Seurat)
+library(patchwork)
+library(dplyr)
+library(ggplot2)
+library(scMC) # devtools::install_github("amsszlh/scMC")
+library(BiocManager)
+library(scran) #BiocManager::install("scran")
+library(hdf5r)
+library(DoubletFinder)
+library(enrichR)
+library(reshape2)
+library(SingleR)
+library(celldex)
+library(pheatmap)
+library(monocle)
+library(igraph)
+library(ClusterMap)
+library(liana)
+library(tibble)
+library(purrr)
+library(RobustRankAggreg)
+library(OmnipathR)
+library(clustree)
+library(plotly)
+library(SeuratWrappers)
+library(magrittr)
+```
+
+
+if at any point during the tutorial you want more information on a particular function, you can ?Function to pull up documentation (i.e ?library)
+
+## Step 3: import files and create a list of them
+import files
+```{r}
+# import first dataset
+datasetOne <- Read10X_h5("path_to_file")
+datasetOne <- CreateSeuratObject(counts = datsetOne, project = "Project_name",
+                                 min.cells = 3, min.features = 200) # default number of cells and features
+datasetOne$library <- "datasetOne" # this adds an additional label which will be used later for identification after merging datasets
+
+# import additional datasets as needed
+#datasetTwo <- Read10X_h5("path_to_file")
+#datasetTwo <- CreateSeuratObject(counts = datsetOne, project = "Project_name",
+#                                min.cells = 3, min.features = 200) 
+#datasetTwo$library <- "datasetTwo" 
+```
+
+take a moment to look at the file type. to view a variable, you can either click on it in the environment window located in the top right hand corner or use the View() function
+```{r}
+View(datasetOne)
+```
+
+create list of files to allow for batch processing of multiple datasets at once
+```{r}
+# create list
+datasetList <- c(datasetOne = datasetOne)#, 
+#                 )datasetTwo = datasetTwo)
+# create list of name for future labeling of images
+datasetNames <- c("VMO")
+                  #, "datasetTwo")
+```
+
+## Step 4: identify genes of interest and run quality control
+Set genes of interest that will be used later for violin plots and feature plots
+```{r}
+genesOfInterest <- c("PECAM1", "TOP2A", "PDGFRA",  "PDGFRB",
+                               "NES", "ACTA2",  "KRT18", "PROCR", "PDPN")
+```
+
+Check quality control on all datasets following standard seurat pipeline (https://satijalab.org/seurat/articles/pbmc3k_tutorial.html)
+```{r}
+# this is a for loop that will allow all datasets to be run at once
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]] # inside the for loop create an object to run analysis on
+  intDataset$percent.mt <- 
+    PercentageFeatureSet(intDataset, pattern = "^MT") # identify mitochondrial genes
+  print(VlnPlot(intDataset, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), 
+                ncol = 3) +
+    plot_annotation(title = paste0(c("Quality Control", datasetNames[i]), sep = " ", 
+                                   collapse = ""))) # print violin plot of mitcondiral percent
+  datasetList[[i]] <- intDataset # save changes to list of datasets
+}
+
+```
+
+Optional but recommended; Subset at 15% mitochondrial
+```{r}
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]]
+  intDataset <- subset(intDataset, subset = percent.mt < 15 & nFeature_RNA > 200)
+  datasetList[[i]] <- intDataset
+}
+
+```
+
+revisualize to check impact of subseting
+```{r}
+# this is a for loop that will allow all datasets to be run at once
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]] # inside the for loop create an object to run analysis on
+  intDataset$percent.mt <- 
+    PercentageFeatureSet(intDataset, pattern = "^MT") # identify mitochondrial genes
+  print(VlnPlot(intDataset, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), 
+                ncol = 3) +
+    plot_annotation(title = paste0(c("Quality Control", datasetNames[i]), sep = " ", 
+                                   collapse = ""))) # print violin plot of mitcondiral percent
+  datasetList[[i]] <- intDataset # save changes to list of datasets
+}
+
+```
+
+
+# rest of code in step 4 is optional
+Please skip this code for right now
+Remove any genes that might skew clustering
+```{r}
+undeseriable <- strsplit("gene1, gene2, gene3, ...", ",")[[1]]
+undeseriable <- toupper(undeseriable)
+undeseriable <- gsub(" ", "", undeseriable)
+```
+
+Optional: Add mitochondrial and atp genes to genen list to remove
+```{r}
+mitoGenes <- ""
+atpGenes <- ""
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]]
+  counts <- GetAssayData(intDataset, assay = "RNA")
+  mito.genes <- rownames(counts)[grep("^MT-", rownames(counts))]
+  mito.genes2 <- rownames(counts)[grep("^MTRNR", rownames(counts))]
+  mito.genes <- c(mito.genes, mito.genes2)
+  mitoGenes <- c(mitoGenes, mito.genes)
+  
+  atp.genes <-rownames(counts)[grep("^ATP", rownames(counts))]
+  atpGenes <- c(atpGenes, atp.genes)
+}
+
+# remove first empty value
+mitoGenes <- mitoGenes[-1]
+atpGenes <- atpGenes[-1]
+
+# simplify to unique values only
+mitoGenes <- unique(mitoGenes)
+atpGenes <- unique(atpGenes)
+
+# add to undeseriable list
+undeseriable <- c(undeseriable, mitoGenes, atpGenes)
+undeseriable <- unique(undeseriable)
+```
+
+Subset out undesired genes
+```{r}
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]]
+  counts <- GetAssayData(intDataset, assay = "RNA")
+  counts <- counts[-(which(rownames(counts) %in% undeseriable)),]
+  intDataset <- subset(intDataset, features = rownames(counts))
+  datasetList[[i]] <- intDataset
+}
+```
+
+## Step 5: Normalize, remove cell cycle genes and doublets
+Normalize, find highly variable features, and scale following base Seurat options
+```{r, message = F}
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]]
+  intDataset <- NormalizeData(intDataset)
+  intDataset <- FindVariableFeatures(intDataset, selection.method = "vst", nfeatures = 2000)
+  intDataset <- ScaleData(intDataset)
+  datasetList[[i]] <- intDataset
+}
+```
+
+Testing Cell Cycle related effects on clustering
+```{r}
+s.genes <- cc.genes$s.genes
+g2m.genes <- cc.genes$g2m.genes
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]]
+  intDataset <- CellCycleScoring(intDataset, s.features = s.genes, g2m.features = g2m.genes, set.ident = T)
+  print(head(intDataset[[]]))
+  print(RidgePlot(intDataset, features = c("PCNA", "TOP2A", "MCM6", "MKI67"), ncol = 2))
+  intDataset <- RunPCA(intDataset, features = c(s.genes, g2m.genes))
+  plot(DimPlot(intDataset) +
+         plot_annotation(title = paste( c(datasetNames[i]) ) ) )
+  datasetList[[i]] <- intDataset
+}
+```
+
+Regress out cell cycle in RNA
+```{r}
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]]
+  intDataset$CC.Difference <- intDataset$S.Score - intDataset$G2M.Score
+  intDataset <- ScaleData(intDataset, vars.to.regress = "CC.Difference")
+  datasetList[[i]] <- intDataset
+}
+```
+
+Run SCTransform and regress out cell cycle
+```{r, message = FALSE, warning = FALSE}
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]]
+  intDataset$CC.Difference <- intDataset$S.Score - intDataset$G2M.Score
+  intDataset <- SCTransform(intDataset, vars.to.regress = "CC.Difference")
+  datasetList[[i]] <- intDataset
+}
+```
+
+Run PCA to visualize clustering using SCTransform normaliztion
+```{r}
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]]
+  DefaultAssay(intDataset) <- "SCTransform" #can change to "RNA" if desired 
+  intDataset <- RunPCA(intDataset)
+  datasetList[[i]] <- intDataset
+}
+```
+
+Identify and remove doublets 
+uses package (https://github.com/chris-mcginnis-ucsf/DoubletFinder)
+this will likely take 10-15 minutes, so it's a great time to go for a bathroom or coffee break and come back when it is done
+```{r, message = FALSE, warning = FALSE}
+# create list of doublet percentage from using chromium 10x 
+# numbers taken from https://www.biotech.wisc.edu/services/gec/services/10X-Genomics-single-cell-services#:~:text=10x%20Genomics%20Single%20Cell%20Features&text=10x%20Chromium%20instrument%20capable%20of,per%20chip%20in%20~7%20minutes.&text=Low%20doublet%20rate%3A%20~0.8%25,%25%20per%205%2C000%20cells%3B%20etc.
+doubletRate <- c(0.01, 0.03, 0.008, 0.008)
+
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]]
+
+  ##pK identification (no ground-truth)
+  sweep.res.list <- paramSweep_v3(intDataset, PCs = 1:20, sct = T)
+  sweep.stats <- summarizeSweep(sweep.res.list, GT = F)
+  bcmvn <- find.pK(sweep.stats)
+  nExp_poi <- round(doubletRate[i] * nrow(intDataset@meta.data)) 
+  
+  # identify optimal parameters
+  intValues <- order(sweep.stats$BCreal)
+  maxValue <- intValues[length(intValues)]
+  
+  # find doublets and remove them
+  try(
+    {
+    intDataset <- doubletFinder_v3(intDataset, PCs = 1:10 , 
+                                   pN = as.numeric(as.character(sweep.stats$pN[maxValue])),
+                                   pK = as.numeric(as.character(sweep.stats$pK[maxValue])),
+                                   nExp = nExp_poi, reuse.pANN = F, sct = T)
+    intDataset <- 
+      intDataset[,which(intDataset@meta.data[grep("DF.class",
+                                                  colnames(intDataset@meta.data))] == "Singlet")]
+}
+  )
+  datasetList[[i]] <- intDataset
+}
+
+
+```
+
+## Step 6: evaluate numerous dimensions and resolutions for optimal clustering
+This can often be the most challenging part of scRNA-seq as the classification for number of cell types can be subjective. The following steps aid in the identification of the optimal number of clusters, but often multipe combinations will need to be tested
+
+run elbow plot to help pick desired dimension
+```{r}
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]]
+  print(ElbowPlot(intDataset, ndims = 30) + ggtitle(paste(c(datasetNames[i], "_Elbow_Plot"), sep = " ")))
+}
+```
+
+Optional: if using RNA slot you can run a jackstraw plot, but this is computational intensive and doesn't work for SCTransformed data
+```{r}
+for (i in 1:lenght(datasetList)){
+  intDataset <- datasetList[[i]]
+  intDataset <- JackStraw(intDataset, num.replicate = 100)
+  intDataset <- ScoreJackStraw(intDataset, dims = 1:30)
+  print(JackStrawPlot(intDataset, dims = 1:30) + 
+          ggtitle(paste(c(datasetNames[i],"_JackStraw_Plot"), sep = " ")))
+}
+```
+
+Optional: Test numerous dims and resolutions
+This allows for visual inspection of the effect of different resolutions and dimensions on clustering
+```{r}
+# create range of resolutions for clustering
+myRes <- seq(from = 0.1, to = 1.0, by = 0.1)
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]]
+  for (j in 18:24){ # evalute resolutions at numerous dimensions
+    intDataset <- RunUMAP(intDataset, dims = 1:j)
+    intDataset <- FindNeighbors(intDataset, dims = 1:j)
+    for (k in 1:length(myRes)){
+      intDataset <- FindClusters(intDataset, resolution = myRes[k])
+      plot(DimPlot(intDataset) + 
+             plot_annotation(title = 
+                               paste(c(datasetNames[i], "Dims = 1:", j, " Res = ", myRes[k]), collapse = "")))
+    }
+  }
+  datasetList[[i]] <- intDataset
+}
+```
+
+Run clustree to evaluate stability of certain resolutions on clustering (https://github.com/lazappi/clustree)
+Note: setting fig.height/fig.width can improve visual output
+```{r,fig.height= 4, fig.width=7}
+res <- seq(from =0.1, to =1.0, by = 0.1)
+npc <- c(20, 20) # set to length of dataset for recommended dimensions from elbow plot
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]]
+  intDataset <- RunUMAP(intDataset, dims = 1:npc[i])
+  intDataset <- FindNeighbors(intDataset, dims = 1:npc[i])
+  for (j in 1:length(res)){
+    intDataset <- FindClusters(intDataset, resolution = res[j])
+  }
+  print(clustree(intDataset, prefix = "SCT_snn_res.") + ggtitle(
+    paste(c(datasetNames[i], " Clustree clustering"), sep = "", collapse = "")
+  ))
+}
+```
+
+
+Optional: Use silhouette scoring to determine optimal resolution
+This takes a significant amount of time (can be hours based on the type of processing power you have) and is not always necessary
+This requries loading the r script chooseR.R and running it
+```{r}
+npc <- c(20, 20) # set to length of dataset for recommended dimensions from elbow plot
+for (i in 1:length(datasetList)){ 
+  intDataset <- datasetList[[i]]
+  intDataset <- RunChooseRRes(intDataset, npcs = npc[i], assay = "SCT", reduction = "pca",
+                              resolutions = seq(from = 0.1, to = 1, by =0.05),
+                              subsample = 0.7, iterations = 70) 
+  intRes <- ChooseRScoresRes(resolutions =  seq(from = 0.1, to = 1, by =0.05))
+  intResDotPlot <- ChooseRDotPlotRes(intRes) + plot_annotation(paste(datasetNames[i]))
+  intResPlot <- ChooseRPlotRes(intRes) + plot_annotation(paste(datasetNames[i]))
+   pdf(file =
+        paste(c(path, 
+                datasetNames[i], "_Dims_", npc[i], ".pdf"), collapse = ""))
+  print(intResDotPlot + plot_annotation(paste(datasetNames[i])))
+  print(intResPlot+ plot_annotation(paste(datasetNames[i])))
+  dev.off()
+  datasetList[[i]] <- intDataset
+}
+
+```
+
+## Step 7: Cluster data and produce heatmap
+Run umap and clustering
+```{r}
+res <- c(0.4, 0.25, 0.5, 0.65) # select resolution from step 6
+for (i in 1:length(datasetList) ){ # 1:length(datasetList) 
+  intDataset <- datasetList[[i]]
+  DefaultAssay(intDataset) <- "SCT"
+  intDataset <- RunUMAP(intDataset, dims = 1:npc[i])
+  intDataset <- FindNeighbors(intDataset, dims = 1:npc[i])
+  intDataset <- FindClusters(intDataset, resolution = res[i])
+  
+  #print dimplot
+  plot(DimPlot(intDataset, label = T, group.by = "seurat_clusters") +
+         plot_annotation(title = paste(c(datasetNames[i], 
+                                         " Dims = 1:", npc[i], " Res = ", res[i]))))
+  
+  # print feature plot
+  plot(FeaturePlot(intDataset, 
+                   features =  genesOfInterest, ncol =3) + 
+         plot_annotation(title = paste(c(datasetNames[i], 
+                                         " Dims = 1:", npc[i], " Res = ", res[i]))))
+  # print violin plot
+  plot(
+    VlnPlot(intDataset,
+            features =  genesOfInterest, ncol =3, group.by = "seurat_clusters") +
+      plot_annotation(title = paste(c(datasetNames[i], " Dims = 1:", 
+                                      npc[i], " Res = ", res[i]))) )
+  
+  datasetList[[i]] <- intDataset
+}
+
+```
+
+Optional: 3D UMAP to help with interpretting clustering
+```{r}
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]]
+  # extract umap dimensions
+  intDataset <- RunUMAP(intDataset, dims = 1:20, n.components = 3L)
+  
+  # pull out individual dimensions
+  umap1 <- intDataset[["umap"]]@cell.embeddings[,1]
+  umap2 <- intDataset[["umap"]]@cell.embeddings[,2]
+  umap3 <- intDataset[["umap"]]@cell.embeddings[,3]
+  
+  # Prepare a dataframe for cell plotting
+  plot.data <- FetchData(object = intDataset, vars = c("UMAP_1", "UMAP_2", "UMAP_3", "seurat_clusters"))
+  
+  # Make a column of row name identities (these will be your cell/barcode names)
+  plot.data$label <- paste(rownames(plot.data))
+  # Plot your data, in this example my Seurat object had 21 clusters (0-20)
+  fig <- plot_ly(data = plot.data, 
+                 x = ~UMAP_1, y = ~UMAP_2, z = ~UMAP_3, 
+                 color = ~seurat_clusters, 
+                 colors = c("lightseagreen",
+                            "gray50",
+                            "darkgreen",
+                            "red4",
+                            "red",
+                            "turquoise4",
+                            "black",
+                            "yellow4",
+                            "royalblue1",
+                            "lightcyan3",
+                            "peachpuff3",
+                            "khaki3",
+                            "gray20",
+                            "orange2",
+                            "royalblue4",
+                            "yellow3",
+                            "gray80",
+                            "darkorchid1",
+                            "lawngreen",
+                            "plum2",
+                            "darkmagenta"),
+                 type = "scatter3d", 
+                 mode = "markers", 
+                 marker = list(size = 5, width=2), # controls size of points
+                 text=~label, #This is that extra column we made earlier for which we will use for cell ID
+                 hoverinfo="text") #When you visualize your plotly object, hovering your mouse pointer over a point shows cell names
+  print(fig)
+}
+```
+
+Generate heatmaps
+```{r, error = TRUE}
+markerList <- vector(mode = "list", length = length(datasetNames))
+topGenesList <- markerList
+for (i in 1:length(datasetList) ){ 
+  intDataset <- datasetList[[i]]
+  intDataset@active.ident <- intDataset$cell.idents
+  markers <- FindAllMarkers(intDataset, only.pos = TRUE)
+  markerList[[i]] <- markers
+  topGenes<- markers%>% group_by(cluster) %>% top_n(n = 5, wt = avg_log2FC) # n = top 5
+  topGenesList[[i]] <- topGenes
+  plot(DoHeatmap(intDataset, features = topGenes$gene, group.by = "seurat_clusters", size = 2) + 
+    plot_annotation(title = paste(c(datasetNames[i], " Dims = 1:", npc[i],
+                                         " Res = ", res[i]))))
+  # save PDF of heatmap to folder
+  pdf(file =
+        paste(c(path, "/Heatmap_",
+                datasetNames[i], "_Dims_", npc[i],
+                                         "_Res_", res[i], ".pdf"), collapse = ""))
+  plot(DoHeatmap(intDataset, features = topGenes$gene, group.by = "seurat_clusters", size = 2) +
+    plot_annotation(title = paste(c(datasetNames[i], " Dims = 1:", npc[i],
+                                         " Res = ", res[i]))) )  # set color scheme))
+  dev.off()
+  
+  # save the top 100 genes
+  top100 <- markers%>% group_by(cluster) %>% top_n(n = 100, wt = avg_log2FC)
+  write.csv(top100, file = paste(c(path, "/top100_DEGS_", datasetnames[i], ".csv"),
+                         sep = "", collapse = ""))
+
+}
+
+```
+
+optional: pull cell function from NCBI Gene
+This requires loading the geneNameToFunction.R script and running it
+```{r}
+for (i in 1:length(datasetList)){
+  topGenes <- topGenesList[[i]]
+  topGenes <- geneFunction(topGenes, df = T)
+  topGenesList[[i]] <- topGenes
+}
+```
+
+Optional: Assign cell labels based off of SingleR
+Subsetting using singleR for classifying cell types
+http://bioconductor.org/books/release/OSCA/cell-type-annotation.html
+
+load reference dataset
+```{r}
+ref <- BlueprintEncodeData()
+ref
+```
+
+Run singleR and assign labels
+```{r}
+predScores <- vector(mode = "list", length = length(datasetNames))
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]]
+  pred <- SingleR(test=intDataset@assays$SCT@counts, ref=ref, labels=ref$label.main)
+  predScores[[i]] <- pred
+  table(pred$labels)
+  print(plotScoreHeatmap(pred, main =datasetNames[i]))
+  # assign labels to seurat object
+  intDataset$pred.cells <- pred@listData$pruned.labels
+  datasetList[[i]] <- intDataset
+}
+```
+
+visualize the proportion of cell labels in each 
+```{r}
+for (i in 1:length(datasetList)){
+  int <- datasetList[[i]]
+  print(computeProportion(int, x = "seurat_clusters", fill = "pred.cells"))
+  print(computeProportion(int, x = "pred.cells", fill = "seurat_clusters"))
+}
+```
+
+Manually assign cluster names 
+Assigning cluster names can be quite challenging. I often use the the cell type from either the singleR or I upload the genes for each cluster to enrichR https://maayanlab.cloud/Enrichr/ and look under the cell type tap. for example I would name cells "EC-1", "EC-2", "SMC-1", "FIB-1" etc
+```{r}
+# based off of heatmap assign cell idents
+datasetOneLabels <- c("cluster1_cell_type", "cluster2_cell_type", ...)
+datasetTwoLabels <- c("cluster1_cell_type", "cluster2_cell_type", ...)
+
+# create list for applying cell idents in a loop
+cellIdents <- list(datasetOneLabels, datasetTwoLabels)
+
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]]
+  intNames <- cellIdents[[i]]
+  names(intNames) <- levels(intDataset)
+  intDataset <- RenameIdents(intDataset, intNames)
+  intDataset$cell.idents <- intDataset@active.ident # creates meta data slot to store cell type
+  intDataset$cell.labels <- intDataset$cell.idents
+  intDataset$libraryID <- as.factor(intDataset$libraryID)
+  intDataset$cell.labels <- 
+    interaction(intDataset$libraryID, 
+                                        intDataset$cell.idents) # combines cell type with libraryID for clustering
+  datasetList[[i]] <- intDataset
+}
+```
+
+optional: reorganize cluster order to allow cell groups to appear next to each other on heatplot or violin plots
+```{r}
+# print cell idents for each dataset
+for (i in 1:length(datastList)){
+  intDataset <- datsetList[[i]]
+  unique(intDataset@meta.data$cell.idents)
+}
+
+# set order for cell lists
+# if you want to change the order of the cells, such as grouping the endothelial cells together this is key step. You need to make sure these are spelled exactly the same as the datasetOne values. I.e you could do c("EC-1", "EC-2", "FIB-1", etc)
+datasetOneOrder <- c("cluster2_cell_type", "cluster1_cell_type", ...)
+datasetTwoOrder <- c("cluster1_cell_type", "cluster1_cell_type", ...)
+
+# create list
+datasetOrderList <- list(datasetOneOrder, datasetTwoOrder)
+
+# change order inside for loop
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]]
+  intDataset@meta.data$cell.idents <- factor(x = intDataset@meta.data$cell.idents,
+                                             levels = datasetOrderList[[i]])
+}
+```
+
+revisualize data for new clustering identities
+Run umap and clustering
+```{r}
+for (i in 1:length(datasetList) ){ 
+  intDataset <- datasetList[[i]]
+  #print dimplot
+  plot(DimPlot(intDataset, label = T, group.by = "seurat_clusters") +
+         plot_annotation(title = paste(c(datasetNames[i], 
+                                         " Dims = 1:", npc[i], " Res = ", res[i]))))
+  
+  #print dimplot using newer identites
+  plot(DimPlot(intDataset, label = T, group.by = "cell.idents") +
+         plot_annotation(title = paste(c(datasetNames[i], 
+                                         " Dims = 1:", npc[i], " Res = ", res[i]))))
+  # print dimplot with singleR identites
+    plot(DimPlot(intDataset, label = T, group.by = "pred.cells") +
+         plot_annotation(title = paste(c(datasetNames[i], 
+                                         " Dims = 1:", npc[i], " Res = ", res[i]))))
+  
+  # print feature plot
+  plot(FeaturePlot(intDataset, 
+                   features =  genesOfInterest2, ncol =3) + 
+         plot_annotation(title = paste(c(datasetNames[i], 
+                                         " Dims = 1:", npc[i], " Res = ", res[i]))))
+  # print violin plot
+  plot(
+    VlnPlot(intDataset,
+            features =  genesOfInterest2, ncol =3, group.by = "cell.idents") +
+      plot_annotation(title = paste(c(datasetNames[i], " Dims = 1:", 
+                                      npc[i], " Res = ", res[i]))) )
+  
+  datasetList[[i]] <- intDataset
+}
+
+```
+
+regenerate heatmap with updated labels
+```{r, error = TRUE}
+markerList <- vector(mode = "list", length = length(datasetNames))
+topGenesList <- markerList
+for (i in 1:length(datasetList) ){ 
+  intDataset <- datasetList[[i]]
+  intDataset@active.ident <- intDataset$cell.idents
+  markers <- FindAllMarkers(intDataset, only.pos = TRUE)
+  markerList[[i]] <- markers
+  topGenes<- markers%>% group_by(cluster) %>% top_n(n = 5, wt = avg_log2FC) # n = top 5
+  topGenesList[[i]] <- topGenes
+  plot(DoHeatmap(intDataset, features = topGenes$gene, group.by = "cell.idents", size = 2) + 
+    plot_annotation(title = paste(c(datasetNames[i], " Dims = 1:", npc[i],
+                                         " Res = ", res[i]))))
+  # save PDF of heatmap to folder
+  pdf(file =
+        paste(c(path, "/Heatmap_cell_idents_",
+                datasetNames[i], "_Dims_", npc[i],
+                                         "_Res_", res[i], ".pdf"), collapse = ""))
+  plot(DoHeatmap(intDataset, features = topGenes$gene, group.by = "cell_idents", size = 2) +
+    plot_annotation(title = paste(c(datasetNames[i], " Dims = 1:", npc[i],
+                                         " Res = ", res[i]))) )  # set color scheme))
+  dev.off()
+
+}
+```
+
+pull out top 100 DEG to run pathway analysis and help with identifying cluster cell type
+```{r}
+top100 <- vector(mode = "list", length = length(datsetList))
+for (i in 1:length(datasetList)){
+  topGenes100 <- markerList[[i]]%>% group_by(cluster) %>% top_n(n = 100, wt = avg_log2FC)
+  write.csv(topGenes, file = paste(c(path, "/", datasetNames[i], "_top100.csv"), 
+                                   sep = "", collapse = ""))
+  top100[[i]] <- topGenes100
+}
+```
+
+run pathway analysis using enrichR (https://cran.r-project.org/web/packages/enrichR/vignettes/enrichR.html)
+Pathway analysis using enrichr
+```{r}
+sigPaths <- vector(mode = "list", length = length(datasetNames))
+enrichPaths <- vector(mode = "list", length = length(datasetNames))
+for (a in 1:length(datasetList)){
+  intDataset <- datasetList[[a]]
+  intClust <- datasetOrderList[[a]]
+  intMarkers <- markerList[[a]]
+  # only run on significant genes
+  sig_markers <- subset(intMarkers, subset = intMarkers$p_val_adj < 0.05)
+  # everything is a list
+  numClusters <- length(levels(intDataset$cell.idents))
+  # preallocate list for storing markers for each seurat cluster
+  enriched_pathway <- vector(mode = "list", length = numClusters)
+  
+  # loop through enrichr
+  setEnrichrSite("Enrichr")
+  websiteLive <- T
+  
+  # list all available databases
+  dbs <- listEnrichrDbs()
+  if (is.null(dbs)) websiteLive <- F
+  if (websiteLive) head(dbs)
+  # only run one at a time
+  databaseOfInterest <- c("GO_Biological_Process_2021")  #"GO_Biological_Process_2018", "WikiPathways_2019_Human", "KEGG_2019_Human", "Elsevier_Pathway_Collection", "BioCarta_2016", "NCI-Nature_2016", "Reactome_2016", "Panther_2016"
+  if (websiteLive){
+    for (i in 1:numClusters){
+      # use subset for sig_markers instead of storing each grouping separately
+      enriched_pathway[[i]] <- enrichr(subset(sig_markers$gene, 
+                                              subset = sig_markers$cluster == intClust[i]), 
+                                       databaseOfInterest)
+      print(enriched_pathway[[i]])
+    }
+  }
+  
+  # identify significant pathways (p < 0.05, combined score > 100)
+  significant_pathways <- vector(mode = "list", length = numClusters)
+
+  # loop through all clusters
+  for (i in 1:numClusters){
+    intermediateDataFrame <- data.frame(Pathway = character(),
+                                        Overlap = integer(),
+                                        p_value = double(),
+                                        Combined_Score = double(),
+                                        DB = character())
+    intermediate_enrichr <- enriched_pathway[[i]]
+    # loop through all databases
+    for (j in 1:length(intermediate_enrichr)){
+      intermediate_db_enrichr <- intermediate_enrichr[[j]]
+      # loop through all pathways inside a database
+      for (k in 1:length(intermediate_db_enrichr[[1]])){
+        if (intermediate_db_enrichr[k,3] < 0.05 && 
+            intermediate_db_enrichr[k,8] > 99)
+        {
+          intermediateDataFrame <- rbind(intermediateDataFrame, c(
+            intermediate_db_enrichr[k,1],
+            intermediate_db_enrichr[k,2],
+            intermediate_db_enrichr[k,3],
+            intermediate_db_enrichr[k,8],
+            databaseOfInterest[j]
+          ))
+        }
+      }
+    }
+    significant_pathways[[i]] <- intermediateDataFrame
+  }
+  sigPaths[[a]] <- significant_pathways
+  enrichPaths[[a]] <- enriched_pathway
+}
+```
+
+visualize
+```{r}
+for (i in 1:length(significant_pathways)){
+  intPath <- significant_pathways[[i]]
+  intPath$id <- rownames(intPath)
+  intPath <- melt(intPath)
+  colnames(intPath) <- c("Term", "Overlap", "P.value", "Combined.Score", 
+                         "Database", "rowPos")
+  intPath$P.value <- as.double(intPath$P.value)
+  print(plotEnrich(intPath, y = "Overlap", numChar = 60, showTerms = 10) + 
+          ggtitle(paste(c(databaseOfInterest, ":", intClust[i]), 
+                                sep = " ", collapse = " ")) +
+          theme(
+            axis.text.y = element_text(size = 16),
+            title = element_text(size = 18)
+          ))
+}
+```
+
+Optional: Save global environment
+```{r}
+save.image(paste(c(path, "/ChangeName.RData"), sep = "", collapse = ""))
+```
+
+## Step 7b: Pseudotime optional
+I am not sure if this will work as I have not run this code
+
+Pseudotime constrains data to a two dimensional space and shows how clusters fall along an arbitruary trajectory 
+
+We will attempt to run pseudotime on all of the non EC genes as they should have all started as similar cells, but have adapted to multiple phenotypes in the device. the variable naming for this section is done poorly as combinedDatasets was used later on, but the command F does not work well on posit online on my iPad which is what I am using to edit this right now
+
+monocle seurat wrapper clustering
+```{r}
+int <- datasetList[[1]]
+combinedDatasets <- subset(combinedDatasets, subset = pred.cells != "Endothelial Cells") # please change this if the name for endothelial cells from singleR is different. You can also try to subset based on your own labels. this would require using the | operator by going
+# cell.idents == "Cell.ident1" | cell.idents == "Cell.ident2" | cell.idents = "Cell.ident3" and repeating this for how many idents you have that are not endothelial cells 
+combinedDatasets.cds <- as.cell_data_set(combinedDatasets)
+combinedDatasets.cds <- cluster_cells(cds = combinedDatasets.cds, reduction_method = "UMAP")
+combinedDatasets.cds <- learn_graph(combinedDatasets.cds, use_partition = T)
+combinedDatasets.cds <- order_cells(combinedDatasets.cds, reduction_method = "UMAP")
+plot_cells(
+  cds = combinedDatasets.cds,
+  color_cells_by = "pseudotime",
+  show_trajectory_graph = T
+)
+DimPlot(combinedDatasets, group.by = "merged.clusts")
+```
+
+normal monocle pseudotime
+```{r}
+#transform the seurat data into monocle data 
+combinedDatasets.cds2.data <- combinedDatasets@assays$RNA@counts[,colnames(combinedDatasets@assays$RNA@data)]
+pheno.data <- combinedDatasets@meta.data
+pd <- new('AnnotatedDataFrame', data = pheno.data)
+feature.data <- rownames(combinedDatasets.cds2.data)
+f.data <- data.frame(feature.data)
+rownames(f.data) <- rownames(combinedDatasets.cds2.data)
+colnames(f.data) <- "gene_short_name"
+fd <- new('AnnotatedDataFrame', data = f.data)
+combinedDatasets.cds2.monocle <- newCellDataSet(combinedDatasets.cds2.data, phenoData = pd, featureData = fd, lowerDetectionLimit=0.5, expressionFamily = negbinomial.size())
+colnames(Biobase::fData(combinedDatasets.cds2.monocle)) <- "gene_short_name"
+combinedDatasets.cds2 <- estimateSizeFactors(combinedDatasets.cds2)
+combinedDatasets.cds2 <- estimateDispersions(combinedDatasets.cds2)
+combinedDatasets.cds2 <- detectGenes(combinedDatasets.cds2, min_expr = 0.25)
+combinedDatasets.cds2 <- setOrderingFilter(combinedDatasets.cds2, topGenescombinedDatasets100$gene)
+combinedDatasets.cds2 <- reduceDimension(combinedDatasets.cds2, max_components = 2)
+combinedDatasets.cds2 <- orderCells(combinedDatasets.cds2, reverse = F)
+plot_cell_trajectory(combinedDatasets.cds2, color_by = "State")
+plot_cell_trajectory(combinedDatasets.cds2, color_by = "cell.idents")
+plot_cell_trajectory(combinedDatasets.cds2, color_by = "Pseudotime")
+```
+
+pseudotime heatmap
+uses top 100 DEGs per cluster
+```{r}
+diff_test_res <- differentialGeneTest(combinedDatasets.cds2[markers$gene,], fullModelFormulaStr = "~sm.ns(Pseudotime)")
+sig_gene_names <- row.names(diff_test_res[order(diff_test_res$pval),])[1:100]
+p1 <- plot_pseudotime_heatmap(combinedDatasets.cds2[which(rownames(ec.cds2) %in% sig_gene_names)], num_clusters = 3, cores = 1, 
+                        cluster_rows = T, show_rownames = T, use_gene_short_name = T,
+                        return_heatmap = T)
+p1
+```
+
+
+You can stop here as we do not have multiple datasets to integrate and thus the following code would not work
+
+## Step 8: integrate datasets
+
+Merging datasets with scMC
+```{r}
+# change default assay to rna instead of sctransform
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]]
+  DefaultAssay(intDataset) <- "RNA"
+  datasetList[[i]] <- intDataset
+}
+
+# create list of datasets
+combinedDatasets <- datasetList
+stringent <- try({
+  combinedDatasets <- RunscMC(combinedDatasets, quantile.cutoff = 0.75, similarity.cutoff = 0.6)
+})
+print(class(stringent))
+  # if it fails run less stringent
+  medium <- ""
+  if(class(stringent) == "try-error"){
+    medium <- try({ 
+      combinedDatasets <- RunscMC(combinedDatasets, quantile.cutoff = 0.5, similarity.cutoff = 0.6)})
+  }
+  print(class(medium))
+  # if it fails run even less stringent
+  lessStringent <- ""
+  if (class(medium) == "try-error"){
+    lessStringent <- try({
+      combinedDatasets <- RunscMC(combinedDatasets, quantile.cutoff = 0.5, similarity.cutoff = 0.4)
+    })
+  }
+  print(class(lessStringent))
+  if(class(lessStringent) == "try-error"){
+    try({
+      vcombinedDatasets <- RunscMC(combinedDatasets, quantile.cutoff = 0.2, similarity.cutoff = 0.2)
+    })
+  }
+combinedDatasets <- FindNeighbors(combinedDatasets, reduction = "scMC", dims = 1:20)
+combinedDatasets <- FindClusters(combinedDatasets, algorithm = 4, resolution = 0.4)
+combinedDatasets <- RunUMAP(combinedDatasets, reduction = 'scMC', dims = 1:20)
+
+# print dimplot based on grouped dataset and the dataset libraryID
+print(DimPlot(combinedDatasets, reduction = "umap", group.by = "libraryID")) #+
+        # scale_color_manual(name = "Dataset", # can use this line of code to change color of dimplot
+        #                    values = c()))
+# print multiple dimplots
+print(DimPlot(combinedDatasets, reduction = "umap", group.by = "seurat_clusters", label = T) )
+print(DimPlot(combinedDatasets, reduction = "umap", group.by = "pred.cells" , label = T))
+print(DimPlot(combinedDatasets, reduction = "umap", split.by = "libraryID" , label = T))
+
+print(FeaturePlot(combinedDatasets, features = genesOfInterest))
+print(VlnPlot(combinedDatasets, features = genesOfInterest, group.by = "seurat_clusters",
+              ncol = 3))
+
+```
+
+Run similar steps to analyzing individual datasets
+run elbow plot to help pick desired dimension
+```{r}
+  print(ElbowPlot(combinedDatasets, ndims = 30) 
+        + ggtitle(paste(c("scMC_integrated", "_Elbow_Plot"), sep = " ")))
+
+```
+
+Optional: Test numerous dims and resolutions
+This allows for visual inspection of the effect of different resolutions and dimensions on clustering
+```{r}
+# create range of resolutions for clustering
+myRes <- seq(from = 0.1, to = 1.0, by = 0.1)
+for (j in 18:24){ # evalute resolutions at numerous dimensions
+  combinedDatasets <- RunUMAP(combinedDatasets, dims = 1:j)
+  combinedDatasets <- FindNeighbors(combinedDatasets, dims = 1:j)
+  for (k in 1:length(myRes)){
+    combinedDatasets <- FindClusters(combinedDatasets, resolution = myRes[k])
+    plot(DimPlot(combinedDatasets) + 
+           plot_annotation(title = 
+                             paste(c(datasetNames[i], "Dims = 1:", j, " Res = ", myRes[k]), collapse = "")))
+  }
+}
+
+```
+
+Run clustree to evaluate stability of certain resolutions on clustering (https://github.com/lazappi/clustree)
+Note: setting fig.height/fig.width can improve visual output
+```{r,fig.height= 4, fig.width=7}
+res <- seq(from =0.1, to =1.0, by = 0.1)
+npcInt <- 20 
+combinedDatasets <- datasetList[[i]]
+combinedDatasets <- RunUMAP(combinedDatasets, dims = 1:npcInt[i])
+combinedDatasets <- FindNeighbors(combinedDatasets, dims = 1:npcInt[i])
+for (j in 1:length(res)){
+  combinedDatasets <- FindClusters(combinedDatasets, resolution = res[j])
+}
+print(clustree(combinedDatasets, prefix = "SCT_snn_res.") + ggtitle(
+  paste(c("integrated_dataset", " Clustree clustering"), sep = "", collapse = "")
+))
+
+```
+
+
+Optional: Use silhouette scoring to determine optimal resolution
+This takes a significant amount of time (can be hours based on the type of processing power you have) and is not always necessary
+```{r}
+npcInt <- 20  # set to length of dataset for recommended dimensions from elbow plot
+combinedDatasets <- RunChooseRRes(combinedDatasets, npcs = npc[i], assay = "SCT", reduction = "scMC",
+                                  resolutions = seq(from = 0.1, to = 1, by =0.05),
+                                  subsample = 0.7, iterations = 70) 
+intRes <- ChooseRScoresRes(resolutions =  seq(from = 0.1, to = 1, by =0.05))
+intResDotPlot <- ChooseRDotPlotRes(intRes) + plot_annotation(paste(datasetNames[i]))
+intResPlot <- ChooseRPlotRes(intRes) + plot_annotation(paste(datasetNames[i]))
+pdf(file =
+      paste(c(path, 
+              "/integrated", "_Dims_", npc[i], ".pdf"), collapse = ""))
+print(intResDotPlot + plot_annotation("integated"))
+print(intResPlot+ plot_annotation("integrated"))
+dev.off()
+```
+
+Visualize dimplot with desired resolution and dimensions
+```{r}
+resInt <- c(0.4) # select resolution from step 6
+npcInt <- 20
+combinedDatasets <- RunUMAP(combinedDatasets, dims = 1:npcInt)
+combinedDatasets <- FindNeighbors(combinedDatasets, dims = 1:npcInt)
+combinedDatasets <- FindClusters(combinedDatasets, resolution = resInt)
+
+#print dimplot
+plot(DimPlot(combinedDatasets, label = T, group.by = "seurat_clusters") +
+       plot_annotation(title = paste(c("integrated", 
+                                       " Dims = 1:", npcInt, " Res = ", resInt))))
+#print dimplot
+plot(DimPlot(combinedDatasets, label = T, group.by = "pred.cells") +
+       plot_annotation(title = paste(c("integrated", 
+                                       " Dims = 1:", npcInt, " Res = ", resInt))))
+#print dimplot
+plot(DimPlot(combinedDatasets, label = T, group.by = "cell.labels") +
+       plot_annotation(title = paste(c("integrated", 
+                                       " Dims = 1:", npcInt, " Res = ", resInt))))
+```
+
+Generate heatmap
+```{r}
+combinedDatasets <- ScaleData(combinedDatasets, feature = rownames(combinedDatasets), verbose = FALSE)
+markerscombinedDatasets <- FindAllMarkers(combinedDatasets, only.pos = TRUE)
+topGenescombinedDatasets <- markerscombinedDatasets %>% group_by(cluster) %>% top_n(n = 5, wt = avg_log2FC)
+DoHeatmap(combinedDatasets, features = topGenescombinedDatasets$gene, 
+          group.by = "seurat_clusters", size = 3, raster = F) + 
+  plot_annotation("plot title") +
+  theme(axis.text.y =  element_text(size = 6),
+        plot.margin = margin(t = 10, b= 10, l = 0, r = 0)) 
+  
+
+
+# extract top 100 genes per cluster
+topGenescombinedDatasets100 <- markerscombinedDatasets %>% 
+  group_by(cluster) %>% top_n(n = 100, wt = avg_log2FC)
+write.csv(topGenescombinedDatasets100,
+          file = paste(c(path, "/integrated_DEG_list_top_100.csv"), 
+                       sep = "", collapse = ""))
+```
+
+Rename cell groups
+```{r}
+intNames <- c("cell_type_1", "cell_type_2", ...)
+names(intNames) <- levels(combinedDatasets)
+combinedDatasets <- RenameIdents(combinedDatasets, intNames)
+combinedDatasets$merged.clusts <- combinedDatasets@active.ident
+```
+
+```{r}
+my_levels <- c("cell_type_2", "cell_type_1", ...)
+combinedDatasets@meta.data$merged.clusts <- 
+  factor(x = combinedDatasets@meta.data$merged.clusts, 
+         levels = my_levels)
+```
+
+visualize dimplot with correct labels
+```{r}
+#print dimplot
+plot(DimPlot(combinedDatasets, label = T, group.by = "seurat_clusters") +
+       plot_annotation(title = paste(c("integrated", 
+                                       " Dims = 1:", npcInt, " Res = ", resInt))))
+```
+
+Generate heatmap
+```{r}
+combinedDatasets@active.ident <- combinedDatasets$merged.clusts 
+markerscombinedDatasets <- FindAllMarkers(combinedDatasets, only.pos = TRUE)
+topGenescombinedDatasets <- markerscombinedDatasets %>% group_by(cluster) %>% top_n(n = 5, wt = avg_log2FC)
+DoHeatmap(combinedDatasets, features = topGenescombinedDatasets$gene, group.by = "merged.clusts", size = 3, raster = F) + 
+  plot_annotation("title") +
+  theme(axis.text.y =  element_text(size = 6),
+        plot.margin = margin(t = 10, b= 10, l = 0, r = 0)) 
+  
+topGenescombinedDatasets100 <- markerscombinedDatasets %>% group_by(cluster) %>% top_n(n = 100, wt = avg_log2FC)
+write.csv(topGenescombinedDatasets100 ,file = paste(c(path, 
+                                                      "/integrated_DEG_list_top_100.csv"), 
+                                                    sep = "", collapse = ""))
+```
+
+Show proportions
+```{r}
+combinedDatasets$clusters.final <-  Idents(combinedDatasets)
+computeProportion(combinedDatasets, x = "merged.clusts", fill = "libraryID")
+computeProportion(combinedDatasets, x = "libraryID", fill = "merged.clusts")
+```
+
+
+
+featureplots and violin plots
+```{r, fig.height = 2, fig.width = 7}
+# create list of genes of interest
+myFeaturePlots <- vector(mode = "list", length = length(genesOfInterest))
+myVlnPlots <- vector(mode = "list", length = length(genesOfInterest))
+
+for (i in 1:length(genesOfInterest)){
+  DefaultAssay(combinedDatasets) <- "RNA"
+  myFeaturePlots[[i]] <- FeaturePlot(combinedDatasts, features = genesOfInterest[i], 
+                                     split.by = "libraryID", 
+                                     keep.scale = "all", # force scale to be consistent 
+                                     combine = T#, 
+                                     #min.cutoff = 0#,
+                                     #max.cutoff = 1
+  ) + 
+    theme(legend.position = "right")
+  
+  myVlnPlots[[i]] <- VlnPlot(combinedMDA, features = genesOfInterest[i], 
+                             group.by = "merged.clusts",
+                             split.by = "libraryID", split.plot = T,
+                             cols = c("#add8e6",  "#ff8b8b" ) )# set color for each library) 
+  myFeatureInt <- myFeaturePlots[[i]]
+  myVlnInt <- myVlnPlots[[i]]
+  #myFeatureInt + myVlnInt + plot_layout(ncol = 2, nrow = 1, widths = 1, heights = 1)
+  print(wrap_plots(myFeatureInt, myVlnInt, widths = 12, heights = 2))
+}
+```
+
+
+# optional pull out a cell type to re run analysis with
+run this code and replace all mentions in step 7 with new label
+```{r}
+datasetListCell <- datasetList
+for (i in 1:length(datasetList)){
+  intDataset <- datasetList[[i]]
+  intDataset <- subset(intDataset, subset = pred.cells == "Cell_type" )
+  datasetListCell[[i]] <- intDataset
+}
+```
+
+## Step 9: Pathway analysis
+load csv file from seurat output
+```{r}
+degList <- topGenescombinedDatasets100
+numClust <- length(unique(degList$cluster))
+```
+
+run pathwya analysis
+```{r}
+sigPaths <- vector(mode = "list", length = numClust)
+enrichPaths <- vector(mode = "list", length = numClust)
+# preallocate list for storing markers for each seurat cluster
+  enriched_pathway <- vector(mode = "list", length = numClust)
+  # identify cluster names
+  intClust <- unique(degList$cluster)
+# loop through enrichr
+setEnrichrSite("Enrichr")
+websiteLive <- T
+
+# list all available databases
+dbs <- listEnrichrDbs()
+if (is.null(dbs)) websiteLive <- F
+if (websiteLive) head(dbs)
+# go biological process comes back with numerous mitochondrial/ribosomal genes
+databaseOfInterest <- c("GO_Biological_Process_2021") # "GO_Molecular_Function_2021" , "BioPlanet_2019"
+  if (websiteLive){
+    for (i in 1:numClust){
+      # use subset for sig_markers instead of storing each grouping separately
+      enriched_pathway[[i]] <- enrichr(subset(degList$gene, 
+                                              subset = degList$cluster == intClust[i]), 
+                                       databaseOfInterest)
+      print(enriched_pathway[[i]])
+    }
+  }
+# identify significant pathways (p < 0.05, combined score > 100)
+  significant_pathways <- vector(mode = "list", length = numClust)
+  #woo triple nester
+  # loop through all clusters
+  for (i in 1:numClust){
+    intermediateDataFrame <- data.frame(Pathway = character(),
+                                        Overlap = integer(),
+                                        p_value = double(),
+                                        Combined_Score = double(),
+                                        DB = character())
+    intermediate_enrichr <- enriched_pathway[[i]]
+    # loop through all databases
+    for (j in 1:length(intermediate_enrichr)){
+      intermediate_db_enrichr <- intermediate_enrichr[[j]]
+      # loop through all pathways inside a database
+      for (k in 1:length(intermediate_db_enrichr[[1]])){
+        if (intermediate_db_enrichr[k,3] < 0.05) #&& 
+            #intermediate_db_enrichr[k,8] > 99) #intermediate_db_enrichr[k,8] > 99
+        {
+          intermediateDataFrame <- rbind(intermediateDataFrame, c(
+            intermediate_db_enrichr[k,1],
+            intermediate_db_enrichr[k,2],
+            intermediate_db_enrichr[k,3],
+            intermediate_db_enrichr[k,8],
+            databaseOfInterest[j]
+          ))
+        }
+      }
+    }
+    significant_pathways[[i]] <- intermediateDataFrame
+  }
+```
+
+visualize
+```{r}
+for (i in 1:length(significant_pathways)){
+  intPath <- significant_pathways[[i]]
+  intPath$id <- rownames(intPath)
+  intPath <- melt(intPath)
+  colnames(intPath) <- c("Term", "Overlap", "P.value", "Combined.Score", 
+                         "Database", "rowPos")
+  intPath$P.value <- as.double(intPath$P.value)
+  print(plotEnrich(intPath, y = "Overlap", numChar = 60, showTerms = 10) + 
+          ggtitle(paste(c("GO Biological Process:", intClust[i]), 
+                                sep = " ", collapse = " ")) +
+          theme(
+            axis.text.y = element_text(size = 16),
+            title = element_text(size = 18)
+          ))
+}
+```
+
+## Step 10: Pseudotime
+Pseudotime constrains data to a two dimensional space and shows how clusters fall along an arbitruary trajectory 
+
+monocle seurat wrapper clustering
+```{r}
+combinedDatasets.cds <- as.cell_data_set(combinedDatasets)
+combinedDatasets.cds <- cluster_cells(cds = combinedDatasets.cds, reduction_method = "UMAP")
+combinedDatasets.cds <- learn_graph(combinedDatasets.cds, use_partition = T)
+combinedDatasets.cds <- order_cells(combinedDatasets.cds, reduction_method = "UMAP")
+plot_cells(
+  cds = combinedDatasets.cds,
+  color_cells_by = "pseudotime",
+  show_trajectory_graph = T
+)
+DimPlot(combinedDatasets, group.by = "merged.clusts")
+```
+
+normal monocle pseudotime
+```{r}
+#transform the seurat data into monocle data 
+combinedDatasets.cds2.data <- combinedDatasets@assays$RNA@counts[,colnames(combinedDatasets@assays$RNA@data)]
+pheno.data <- combinedDatasets@meta.data
+pd <- new('AnnotatedDataFrame', data = pheno.data)
+feature.data <- rownames(combinedDatasets.cds2.data)
+f.data <- data.frame(feature.data)
+rownames(f.data) <- rownames(combinedDatasets.cds2.data)
+colnames(f.data) <- "gene_short_name"
+fd <- new('AnnotatedDataFrame', data = f.data)
+combinedDatasets.cds2.monocle <- newCellDataSet(combinedDatasets.cds2.data, phenoData = pd, featureData = fd, lowerDetectionLimit=0.5, expressionFamily = negbinomial.size())
+colnames(Biobase::fData(combinedDatasets.cds2.monocle)) <- "gene_short_name"
+combinedDatasets.cds2 <- estimateSizeFactors(combinedDatasets.cds2)
+combinedDatasets.cds2 <- estimateDispersions(combinedDatasets.cds2)
+combinedDatasets.cds2 <- detectGenes(combinedDatasets.cds2, min_expr = 0.25)
+combinedDatasets.cds2 <- setOrderingFilter(combinedDatasets.cds2, topGenescombinedDatasets100$gene)
+combinedDatasets.cds2 <- reduceDimension(combinedDatasets.cds2, max_components = 2)
+combinedDatasets.cds2 <- orderCells(combinedDatasets.cds2, reverse = F)
+plot_cell_trajectory(combinedDatasets.cds2, color_by = "State")
+plot_cell_trajectory(combinedDatasets.cds2, color_by = "seurat_clusters")
+plot_cell_trajectory(combinedDatasets.cds2, color_by = "Pseudotime")
+```
+
+pseudotime heatmap
+uses top 100 DEGs per cluster
+```{r}
+diff_test_res <- differentialGeneTest(combinedDatasets.cds2[topGenescombinedDatasets100$gene,], fullModelFormulaStr = "~sm.ns(Pseudotime)")
+sig_gene_names <- row.names(subset(diff_test_res, qval < 0.1))
+p1 <- plot_pseudotime_heatmap(combinedDatasets.cds2[unique(topGenescombinedDatasets100$gene)], num_clusters = 3, cores = 1, 
+                        cluster_rows = T, show_rownames = T, use_gene_short_name = T,
+                        return_heatmap = T)
+p1
+```
+
+## Step 11: Cell-Cell Communication
+This package can be more challenging to install
+Run liana to determine cell-cell communication (https://github.com/saezlab/liana)
+load resources
+```{r}
+get_resources()
+```
+
+Run Liana
+```{r}
+# create list for storing table results
+cccList <- vector(mode = "list", length = length(datasetNames))
+# received error from italk when i = 3, chose to ignore it and remove italk results from that dataset
+for (i in 1:length(datasetList)){
+  # subset out the populations of interest
+  intDataset <- datasetList[[i]]
+  DefaultAssay(intDataset) <- "RNA"
+  intDataset@active.ident <- as.factor(intDataset$cell.idents)
+  
+  # run liana
+    liana_test <- liana_wrap(intDataset,
+                         method = c("cellchat", "connectome", "italk", "natmi", "sca"),
+                         resource = "OmniPath")
+  
+  # aggregrate results across different pipelines
+  intCcc <- liana_test %>% liana_aggregate()
+  
+  # store in list
+  cccList[[i]] <- intCcc
+}
+```
+
+
+Subset aggregrates that are "statistically significant" across all databases
+```{r}
+cccListSig <- cccList
+for (i in 1:length(cccListSig)){
+  intCcc <- cccListSig[[i]]
+  intCcc <- intCcc[which(intCcc$cellchat.pval < 0.05 ),]
+  cccListSig[[i]] <- intCcc
+}
+```
+
+Create simplified matrix 
+```{r}
+cccSimp <- data.frame(gene = character(),
+                      cluster = character(),
+                      Library = character(),
+                      stringsAsFactors = FALSE)
+cccSimpList<- vector(mode = "list", length = length(datasetNames))
+for (i in 1:length(cccListSig)){
+  intCcc <- cccListSig[[i]]
+  intSimp <- data.frame(gene = paste(intCcc$ligand, intCcc$receptor, sep = "_"))
+  intSimp$cluster <- paste(intCcc$source, intCcc$target, sep ="_")
+  intSimp$Library <- datasetNames[i]
+  cccSimp <- rbind(cccSimp, intSimp)
+  cccSimpList[[i]] <- intSimp
+}
+```
+
+Trying to identify columns that only appear once
+```{r}
+cccUnique <- cccSimp %>% group_by(gene) %>% filter(n()<2)
+cccUnique
+
+write.csv(cccUnique, file = paste(c(path, "/cccInteractionsNew.csv"), sep = "", collapse = ""))
+
+# subset based off cell cell interaction type and save to excel sheet
+uniqueInteractions <- unique(cccUnique$cluster)
+for (i in 1:length(uniqueInteractions)){
+  intUnique <- subset(cccUnique, subset = cluster == uniqueInteractions[i])
+  print(intUnique)
+  #write.csv(intUnique, file = paste(c(uniqueInteractions[i], "Ccc_v2.csv"), sep = "", collapse = ""))
+  
+}
+```
+
+Trying to identify columns that only appear in certain datasets
+```{r}
+cccUniqueSimp <- data.frame(gene = character(),
+                      Library = character(),
+                      stringsAsFactors = F)
+cccUniqueList <- vector(mode = "list", length = length(datasetNames))
+for (i in 1:length(datasetNames)) {
+  intList <- cccSimpList[[i]]
+  cccUniqueList[[i]] <- unique(intList$gene)
+  intDF <- data.frame(gene = unique(intList$gene))
+  intDF$Library <- datasetNames[i]
+  cccUniqueSimp <- rbind(cccUniqueSimp, intDF)
+}
+
+cccUnique2 <- cccUniqueSimp %>% group_by(gene) %>% filter(n()<2)
+cccUnique2
+
+# subset based off cell cell interaction type and save to excel sheet
+uniqueInteractions <- unique(cccUnique$cluster)
+for (i in 1:length(uniqueInteractions)){
+  intUnique <- subset(cccUnique, subset = cluster == uniqueInteractions[i])
+  print(intUnique)
+  #write.csv(intUnique, file = paste(c(uniqueInteractions[i], "Ccc_v2.csv"), sep = "", collapse = ""))
+  
+}
+```
+
+## step 12: transcription factor regulatory network
+https://github.com/aertslab/SCENIC
+install necessary r packages
+```{r}
+# check version of biocmanager, required 4.0 >=
+BiocManager::version()
+
+## Required
+BiocManager::install(c("AUCell", "RcisTarget"))
+BiocManager::install(c("GENIE3")) # Optional. Can be replaced by GRNBoost
+BiocManager::install("GRNBoost")
+
+# ## Optional (but highly recommended):
+# # To score the network on cells (i.e. run AUCell):
+# BiocManager::install(c("zoo", "mixtools", "rbokeh"))
+# # For various visualizations and perform t-SNEs:
+# BiocManager::install(c("DT", "NMF", "ComplexHeatmap", "R2HTML", "Rtsne"))
+# # To support paralell execution (not available in Windows):
+# BiocManager::install(c("doMC", "doRNG"))
+
+# check and install BiocManager packages
+listOfBiocPackages <- c("zoo", "mixtools", "rbokeh", 
+                        "DT", "NMF", "ComplexHeatmap", "R2HTML", "Rtsne",
+                        "doMC", "doRNG")
+newBiocPackages <- listOfBiocPackages[!(listOfBiocPackages %in% 
+                                   installed.packages()[,"Package"])]
+if(length(newBiocPackages)){
+  BiocManager::install(newBiocPackages)
+} 
+
+# To export/visualize in http://scope.aertslab.org
+devtools::install_github("aertslab/SCopeLoomR", build_vignettes = TRUE)
+
+# install scenic
+install_github("aertslab/SCENIC")
+packageVersion("SCENIC")
+```
+
+download daabase for RcisTarget (motif rankings). roughly 1GB
+```{r}
+dbFiles <- c("https://resources.aertslab.org/cistarget/databases/homo_sapiens/hg19/refseq_r45/mc9nr/gene_based/hg19-500bp-upstream-7species.mc9nr.feather",
+"https://resources.aertslab.org/cistarget/databases/homo_sapiens/hg19/refseq_r45/mc9nr/gene_based/hg19-tss-centered-10kb-7species.mc9nr.feather")
+# mc9nr: Motif collection version 9: 24k motifs
+# tic()
+# for(featherURL in dbFiles)
+# {
+#   download.file(featherURL, destfile=basename(featherURL)) # saved in current dir
+# }
+# toc()
+```
+
+Load necessary R packges
+```{r, message=FALSE}
+# required for scenic
+library(AUCell)
+library(RcisTarget)
+library(GENIE3)
+# library(GRNBoost)
+library(SCENIC)
+library(arrow)
+```
+
+extract gene gene matrix for tumor D population and remove genes that have zero expression
+```{r}
+combinedDatasetsCM <- GetAssayData(combinedDatasets, slot = "counts", assay = "RNA")
+combinedDatasetsCM<- as.matrix(combinedDatasetsCM)
+combinedDatasetsCM <- combinedDatasetsCM[-grep(TRUE, rowSums(combinedDatasetsCM)==0),]
+length(grep(TRUE, rowSums(combinedDatasetsCM)==0))
+```
+
+initialize settings
+```{r}
+scenicOptions <- initializeScenic(org="hgnc", dbDir=path, 
+                                                   nCores=4, dbs=defaultDbNames[["hgnc"]])
+# add seurat cluster info to file
+cellInfo <- data.frame(seuratClusters = Idents(tumorD))
+scenicOptions@inputDatasetInfo$cellInfo <- cellInfo
+# add additional meta data
+#colVars <- data.frame()
+#scenicOptions@inputDatasetInfo$colVars <- ()
+
+# save 
+saveRDS(scenicOptions, file = "int/scenicOptions.Rds")
+```
+
+WARNING: This can take over 20+ hours depending on the size of the dataset and processing power
+```{r}
+tic()
+genesKept <- geneFiltering(combinedDatasetsDCM, scenicOptions) # takes about 15 seconds
+toc()
+exprMat_filtered <- combinedDatasetsDCM[genesKept,]
+tic()
+runCorrelation(exprMat_filtered, scenicOptions) # takes about 45 seconds
+toc()
+tic()
+exprMat_filtered_log <- log2(exprMat_filtered + 1)
+toc()
+tic()
+runGenie3(exprMat_filtered_log, scenicOptions) # 1142 seconds (19 minutes)
+toc()
+```
+
+Build and score GRN
+```{r}
+tic()
+exprMat_log <- log2(combinedDatasetsDCM+1)
+toc()
+scenicOptions@settings$dbs <- scenicOptions@settings$dbs["500bp"] # use 10kb base search for TF region
+
+tic()
+scenicOptions <- runSCENIC_1_coexNetwork2modules(scenicOptions) # 40seconds
+toc()
+
+tic() # 11 minutes
+scenicOptions <- runSCENIC_2_createRegulons(scenicOptions, coexMethods = c("top10perTarget")) #toy run settings
+toc()
+
+tic()
+scenicOptions <- runSCENIC_3_scoreCells(scenicOptions, exprMat_log) # 11 seconds
+toc()
+
+# tic()
+# scenicOptions <- runSCENIC_4_aucell_binarize(scenicOptions)
+# toc()
+```
+
+Visualize results using tsne
+```{r}
+
+fileNames <- tsneAUC(scenicOptions, nPcs = 10, perpl = 5)
+plotTsne_compareSettings(fileNames, scenicOptions)
+aucellApp <- plotTsne_AUCellApp(scenicOptions, exprMat_log)
+shiny::runApp(aucellApp)
+
+```
+
+view top regulons with 10 genes or more
+```{r}
+regulons <- loadInt(scenicOptions, "aucell_regulons")
+head(cbind(onlyNonDuplicatedExtended(names(regulons))))
+```
+
+output from step 2
+```{r}
+# output/Step2_MotifEnrichment_preview.html in detail/subset:
+motifEnrichment_selfMotifs_wGenes <- loadInt(scenicOptions, "motifEnrichment_selfMotifs_wGenes")
+tableSubset <- motifEnrichment_selfMotifs_wGenes[highlightedTFs=="Sox8"]
+viewMotifs(motifEnrichment_selfMotifs_wGenes) 
+```
+
+output from step 2
+```{r}
+regulonTargetsInfo <- loadInt(scenicOptions, "regulonTargetsInfo")
+tableSubset <- regulonTargetsInfo[highConfAnnot==TRUE]
+viewMotifs(tableSubset) 
+```
+
+cell type specific regulaotrs
+```{r}
+# Cell-type specific regulators (RSS): 
+regulonAUC <- loadInt(scenicOptions, "aucell_regulonAUC")
+rss <- calcRSS(AUC=getAUC(regulonAUC), cellAnnotation=cellInfo[,1] )
+rssPlot <- plotRSS(rss, zThreshold = 0, trh = 0)
+p1 <- rssPlot$plot + labs(title = "title") +
+  theme(plot.title = element_text(hjust = -0.5))
+ggplotly(p1)
+```
+
+generate heatmap
+```{r}
+regulonAUC <- regulonAUC[onlyNonDuplicatedExtended(rownames(regulonAUC)),]
+regulonActivity_byCellType <- sapply(split(rownames(cellInfo), cellInfo$seuratClusters),
+                                     function(cells) rowMeans(getAUC(regulonAUC)[,cells]))
+regulonActivity_byCellType_Scaled <- t(scale(t(regulonActivity_byCellType), center = T, scale=T))
+
+
+ComplexHeatmap::Heatmap(regulonActivity_byCellType_Scaled, name="Regulon activity") 
+```
+
+end
