@@ -6,7 +6,7 @@ output: html_notebook
 The goal of this notebook is to go over a very high level introduction to coding with R and then provide an overview of an analysis pipeline for scRNA-seq data. The data will be imported, utilize Seurat to process data, and then run downstream analysis of pathway analysis, cell-cell communication, and pseudotime.
 This is intended to be used with multiple datasets at once, but can be run with a single dataset if desired
 
-Please send questions to cjhatch@uci.edu
+Please send questions to Chris
 
 ### Part 1: Introduction to R
 R is a programming language for statistical computing and graphics that has gained widespread popularity in the bioinformatics community due to it being a high level language with multiple specific packages and great visualization techniques. One nice thing about R is that it is functional programming language which does not require pre determination of variables (https://medium.com/@shaistha24/functional-programming-vs-object-oriented-programming-oop-which-is-better-82172e53a526)
