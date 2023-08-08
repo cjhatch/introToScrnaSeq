@@ -921,7 +921,7 @@ Run PCA to visualize clustering using SCTransform normaliztion
 ```{r}
 for (i in 1:length(datasetList)){
   intDataset <- datasetList[[i]]
-  DefaultAssay(intDataset) <- "SCTransform" #can change to "RNA" if desired 
+  DefaultAssay(intDataset) <- "SCT" #can change to "RNA" if desired 
   intDataset <- RunPCA(intDataset)
   datasetList[[i]] <- intDataset
 }
